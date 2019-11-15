@@ -3,6 +3,7 @@ import csv
 import json
 import scrapy
 import time
+from scrapy.shell import inspect_response
 
 def get_m_rate(response):
     # handles errors and returns the m_rate from json
@@ -122,8 +123,10 @@ class UpdaterSpider(scrapy.Spider):
                 item['V_Rate'] = None
         # extract visa rate using xpath
         else:
-            # inspect_response(response, self)
-            item['V_Rate'] = response.xpath(VISA_XPATH).get().split()[0].replace(',','')
+            try:
+                item['V_Rate'] = response.xpath(VISA_XPATH).get().split()[0].replace(',','')
+            except AttributeError:
+                item['V_Rate'] = None
 
             if item['mvb'] == 'v':
                 item['M_Rate'] = None
