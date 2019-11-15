@@ -46,12 +46,12 @@ def master_date_string(date):
 
 def visa_date_string(date):
     # converts a date object into the visa format
-    return date.strftime('%d/%m/%Y')
+    return date.strftime('%m/%d/%Y')
 
 
 def find_visa_set():
     # creates a set of all codes that visa provides rates for
-    m_rate_url = 'https://www.visaeurope.com/making-payments/exchange-rates'
+    m_rate_url = 'https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html'
     page = requests.get(m_rate_url)
     tree = html.fromstring(page.content)
     cur_xpath = '//*[@id="fromCurr"]/option/@value'

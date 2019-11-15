@@ -7,7 +7,7 @@ from pre import drop_tables, MASTERCARD, SETTLEMENT, SUPPORT, FIRST_DATE
 
 def get_visa_currs_and_codes():
     # creates a set of all codes that visa provides rates for
-    visa_url = 'https://www.visaeurope.com/making-payments/exchange-rates'
+    visa_url = 'https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html'
     page = requests.get(visa_url)
     tree = html.fromstring(page.content)
     cur_xpath = '//*[@id="fromCurr"]/option'

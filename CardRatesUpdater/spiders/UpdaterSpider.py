@@ -4,7 +4,6 @@ import json
 import scrapy
 import time
 
-
 def get_m_rate(response):
     # handles errors and returns the m_rate from json
     # see errors text document for more info
@@ -28,20 +27,8 @@ RATE_URL = ('settlement/currencyrate/'
             '/conversion-rate')
 MASTERCARD = 'https://www.mastercard.co.uk/'
 REFERER = 'en-gb/consumers/get-support/convert-currency.html'
-VISA_URL = 'https://www.visaeurope.com/making-payments/exchange-rates'
+VISA_URL = 'https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html'
 VISA_XPATH = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
-# ('//*[@id="form1"]/div[4]/main/div/div[1]/div/div[2]/div/div[2]/'
-#               'p[3]/strong[2]/text()')
-ER_HEAD = {
-    'Accept': ('text/html,application/xhtml+xml,application/xml;q=0.9'
-               ',image/webp,image/apng,*/*;q=0.8'),
-    'Connection': 'keep-alive',
-    'Referer': VISA_URL,
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6)'
-                   'AppleWebKit/537.36 (KHTML, like Gecko)'
-                   ' Chrome/78.0.3904.97 Safari/537.36')
-}
 
 
 # large text file, open and close
@@ -53,7 +40,7 @@ with open('visa_form_data.txt') as f:
 class UpdaterSpider(scrapy.Spider):
     # Need name to call spider from terminal
     name = 'UpdaterSpider'
-    allowed_domains = ['mastercard.co.uk', 'visaeurope.com']
+    allowed_domains = ['mastercard.co.uk', 'visa.co.uk']
 
     def __init__(self, data=None, number=None, *args, **kwargs):
         super(UpdaterSpider, self).__init__(*args, **kwargs)
@@ -78,16 +65,12 @@ class UpdaterSpider(scrapy.Spider):
                          meta=dict(item=item)))
 
     def v_request(self, item):
-        # evalutes post data as dictionary from text file
-        post = {'amount': 1,
-                'fee': 0.0,
-                'exchangedate': item['visa_date'],
-                'fromCurr': item['card_c'],
-                'toCurr': item['trans_c'],
-                'submitButton': 'Calculate exchange rate'}
+
         # sends formatted request to visa and continues to the parse function
         # passes on item through meta
-        return scrapy.FormRequest(callback=self.parse, url=VISA_URL,
+        params = f"?amount=1&fee=0.0&exchangedate={item['visa_date']}&fromCurr={item['card_c']}&toCurr={item['trans_c']}&submitButton=Calculate+exchange+rate"
+        return scrapy.Request(callback=self.parse, url=VISA_URL+params, meta=dict(item=item))
+        return scrapy.FormRequest(callback=self.parse, url=VISA_URL+params,
                                   headers=ER_HEAD, formdata=post,
                                   meta=dict(item=item))
 
@@ -144,7 +127,8 @@ class UpdaterSpider(scrapy.Spider):
                 item['V_Rate'] = None
         # extract visa rate using xpath
         else:
-            item['V_Rate'] = (response.xpath(VISA_XPATH).get().split()[0].replace(',',''))
+            # inspect_response(response, self)
+            item['V_Rate'] = response.xpath(VISA_XPATH).get().split()[0].replace(',','')
 
             if item['mvb'] == 'v':
                 item['M_Rate'] = None
