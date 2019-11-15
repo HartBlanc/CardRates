@@ -35,25 +35,15 @@ VISA_XPATH = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
 ER_HEAD = {
     'Accept': ('text/html,application/xhtml+xml,application/xml;q=0.9'
                ',image/webp,image/apng,*/*;q=0.8'),
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Accept-Language': 'en-US,en;q=0.8,ko;q=0.6',
-    'Cache-Control': 'max-age=0',
     'Connection': 'keep-alive',
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Cookie': ('ServerID=1033;'
-               'ASP.NET_SessionId=cjxaf3vakwsk1uhmuwm2342p;'
-               'UnicaNIODID=nOL8YsQNeWu-ajDtDw3; __utmt=1;'
-               '__utma=126373514.493142777.1508925843.1508925843.1508925843.1;'
-               ' __utmb=126373514.10.10.1508925843; __utmc=126373514;'
-               ' __utmz=126373514.1508925843.1.1.utmcsr=(direct)|'
-               'utmccn=(direct)|utmcmd=(none)'),
-    'Origin': 'https://www.visaeurope.com',
     'Referer': VISA_URL,
     'Upgrade-Insecure-Requests': '1',
-    'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6)'
+    'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6)'
                    'AppleWebKit/537.36 (KHTML, like Gecko)'
-                   'Chrome/61.0.3163.100 Safari/537.36')
+                   ' Chrome/78.0.3904.97 Safari/537.36')
 }
+
+
 # large text file, open and close
 with open('visa_form_data.txt') as f:
     VISA_BASE_FORM = f.read()
@@ -89,7 +79,12 @@ class UpdaterSpider(scrapy.Spider):
 
     def v_request(self, item):
         # evalutes post data as dictionary from text file
-        post = eval(VISA_BASE_FORM)
+        post = {'amount': 1,
+                'fee': 0.0,
+                'exchangedate': item['visa_date'],
+                'fromCurr': item['card_c'],
+                'toCurr': item['trans_c'],
+                'submitButton': 'Calculate exchange rate'}
         # sends formatted request to visa and continues to the parse function
         # passes on item through meta
         return scrapy.FormRequest(callback=self.parse, url=VISA_URL,
