@@ -10,7 +10,7 @@ def get_visa_currs_and_codes():
     visa_url = 'https://www.visaeurope.com/making-payments/exchange-rates'
     page = requests.get(visa_url)
     tree = html.fromstring(page.content)
-    cur_xpath = ("//select[@name=",
+    cur_xpath = ("//select[@name="
                  "'ctl00$ctl00$MainContent$MainContent$ctl00$ddlCardCurrency']"
                  "/option")
     options = tree.xpath(cur_xpath)
