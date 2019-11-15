@@ -29,8 +29,9 @@ RATE_URL = ('settlement/currencyrate/'
 MASTERCARD = 'https://www.mastercard.co.uk/'
 REFERER = 'en-gb/consumers/get-support/convert-currency.html'
 VISA_URL = 'https://www.visaeurope.com/making-payments/exchange-rates'
-VISA_XPATH = ('//*[@id="form1"]/div[4]/main/div/div[1]/div/div[2]/div/div[2]/'
-              'p[3]/strong[2]/text()')
+VISA_XPATH = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
+# ('//*[@id="form1"]/div[4]/main/div/div[1]/div/div[2]/div/div[2]/'
+#               'p[3]/strong[2]/text()')
 ER_HEAD = {
     'Accept': ('text/html,application/xhtml+xml,application/xml;q=0.9'
                ',image/webp,image/apng,*/*;q=0.8'),
@@ -148,8 +149,7 @@ class UpdaterSpider(scrapy.Spider):
                 item['V_Rate'] = None
         # extract visa rate using xpath
         else:
-            item['V_Rate'] = (response.xpath(VISA_XPATH)
-                              .extract_first().replace(',', ''))
+            item['V_Rate'] = (response.xpath(VISA_XPATH).get().split()[0].replace(',',''))
 
             if item['mvb'] == 'v':
                 item['M_Rate'] = None
