@@ -10,13 +10,10 @@ def get_visa_currs_and_codes():
     visa_url = 'https://www.visaeurope.com/making-payments/exchange-rates'
     page = requests.get(visa_url)
     tree = html.fromstring(page.content)
-    cur_xpath = ("//select[@name="
-                 "'ctl00$ctl00$MainContent$MainContent$ctl00$ddlCardCurrency']"
-                 "/option")
+    cur_xpath = '//*[@id="fromCurr"]/option'
     options = tree.xpath(cur_xpath)
-    codes = {o.attrib['value']: o.text[6:].upper()
-             for o in options
-             if len(o.attrib['value']) == 3}
+    codes = {o.attrib['value']: o.text[:-6].upper() for o in options if len(o.attrib['value']) == 3}
+    assert len(codes) != 0
     return codes
 
 
@@ -25,9 +22,9 @@ def get_master_currs_and_codes():
     r = requests.get(MASTERCARD + SETTLEMENT,
                      headers={"referer": MASTERCARD + SUPPORT})
     JSON = r.json()
-    codes = list()
     codes = {x['alphaCd']: x['currNam'].strip()
              for x in JSON['data']['currencies']}
+    assert len(codes) != 0
     return codes
 
 

@@ -47,12 +47,10 @@ def find_visa_set():
     m_rate_url = 'https://www.visaeurope.com/making-payments/exchange-rates'
     page = requests.get(m_rate_url)
     tree = html.fromstring(page.content)
-    cur_xpath = ("//select"
-                 "[@name="
-                 "'ctl00$ctl00$MainContent$MainContent$ctl00$ddlCardCurrency']"
-                 "/option")
+    cur_xpath = '//*[@id="fromCurr"]/option/@value'
     options = tree.xpath(cur_xpath)
-    codes = {o.attrib['value'] for o in options if len(o.attrib['value']) == 3}
+    codes = {o for o in options if len(o) == 3}
+    assert len(codes) > 0
     return codes
 
 
