@@ -7,6 +7,13 @@ import os
 from lxml import html
 from itertools import product
 
+'''
+#TO-DO
+* Do I need to write to csv?
+* Can I use multiprocessing if I do need to?
+* Refactoring required
+* Add missing currencies
+'''
 
 def chunkify(lst, n):
     return [lst[i::n] for i in range(n)]
@@ -75,53 +82,36 @@ def get_code_list(cur):
 
 
 def create_all_combos(cur, l1, l2):
-    cur.execute('''CREATE TABLE All_Combos (
-    card_id INTEGER NOT NULL,
-    trans_id INTEGER NOT NULL,
-    date_id INTEGER NOT NULL,
-    UNIQUE(card_id, trans_id, date_id)
-    );''')
-
-    cur.execute('BEGIN TRANSACTION')
     print("generating all combos")
-    all_combos = ((x, y, z) for x, y, z in product(l1, l1, l2) if x != y)
-    cur.executemany('''INSERT into All_Combos (card_id, trans_id, date_id)
-                       Values (?, ?, ?)''', (all_combos))
+    return {(x, y, z) for x, y, z in product(l1, l1, l2) if x != y}
 
 
 def find_missing_combos(cur, vnm, mnv):
     print("finding missing combos")
-    sql = '''CREATE TABLE Missing AS
-    SELECT card_id,trans_id,date_id FROM All_Combos
-    EXCEPT
-    SELECT card_id, trans_id, date_id FROM Rates
-    UNION
-    SELECT card_id,trans_id,date_id FROM Rates
-    WHERE (trans_id NOT IN {} AND card_id NOT IN {} AND mastercard IS NULL)
-    OR (trans_id NOT IN {} AND card_id NOT IN {} AND visa IS NULL)
-    AND date_id > {};
-    '''.format(vnm, vnm, mnv, mnv, TODAY - 363)
-    cur.execute(sql)
-    cur.execute("SELECT Count(*) FROM Missing")
-    print("Number missing", cur.fetchone()[0])
+
+    cur.execute('SELECT * FROM Rates')
+    not_missing = {(card_id, trans_id, date_id) for
+                    card_id, trans_id, date_id, m, v in cur.fetchall()
+                    if m is not None and v is not None
+                    or v is not  None and card_id in mnv
+                    or m is not None and card_id in vnm}
+
+    all_combos = create_all_combos(cur, range(1, len(all_db_codes) + 1),
+                                range(TODAY - 363, TODAY + 1)
+                                )
+
+    missing = all_combos - not_missing
+    print(len(missing))
+    return missing
 
 
-def fetch_data(cur):
-    print("translating to codes")
-    cur.execute('''
-    CREATE TABLE Missing_Codes AS
-    Select card , Currency_Codes.code as trans, date_id
-    FROM (
-    Select Currency_Codes.code as card, Missing.trans_id, Missing.date_id
-    FROM Missing
-    JOIN Currency_Codes
-    ON (Missing.card_id = Currency_Codes.rowid)
-    )
-    JOIN Currency_Codes
-    ON (trans_id = Currency_Codes.rowid)
-    ''')
-    cur.execute('select * from Missing_Codes')
-    return cur.fetchall()
+def fetch_data(cur, missing):
+    cur_list = cur.execute('SELECT code from Currency_Codes')
+
+    cur_dict = {i+1:code[0] for i, code in enumerate(cur_list)}
+
+    return [(cur_dict[card_id], cur_dict[trans_id], date_id) for card_id, trans_id, date_id in missing]
+
 
 
 def get_mvb(card_c, trans_c):
@@ -165,16 +155,13 @@ if __name__ == '__main__':
     print("Visa only:", visa_only)
     print("Master only:", master_only)
     print("Missing from DB:", missing_codes)
-    temp_tabs = ("All_Combos", "Missing", "Missing_Codes")
-    drop_tables(cur, temp_tabs)
     create_all_combos(cur, range(1, len(all_db_codes) + 1),
                       range(TODAY - 363, TODAY + 1)
                       )
-    find_missing_combos(cur, index_tuple(list(all_db_codes), visa_only),
-                        index_tuple(list(all_db_codes), master_only)
-                        )
-    data = fetch_data(cur)
-    drop_tables(cur, temp_tabs)
+    missing = find_missing_combos(cur, index_tuple(list(all_db_codes), visa_only),
+                                  index_tuple(list(all_db_codes), master_only)
+                                 )
+    data = fetch_data(cur, missing)
     con.close()
     chunked = chunkify(data, N)
     os.mkdir('input')
@@ -188,6 +175,4 @@ if __name__ == '__main__':
                 date = date_calculator(item[2])
                 card_c = item[0]
                 trans_c = item[1]
-                f.write('{},{},{},{},{}\n'.format(card_c, trans_c,
-                        visa_date_string(date), master_date_string(date),
-                        get_mvb(card_c, trans_c)))
+                f.write(f'{card_c},{trans_c},{visa_date_string(date)},{master_date_string(date)},{get_mvb(card_c, trans_c)}\n')

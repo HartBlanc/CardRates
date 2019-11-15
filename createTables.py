@@ -69,7 +69,7 @@ if __name__ == '__main__':
     createTables(con)
     sql = 'INSERT into Currency_codes (code, currency) Values (?, ?)'
     con.executemany(sql, get_all_currs_and_codes())
-    numdays = 1000
+    numdays = 2000
     date_gen = ((FIRST_DATE + datetime.timedelta(days=x), )
                 for x in range(0, numdays))
     con.executemany('INSERT into Dates (date) Values (?)', date_gen)
