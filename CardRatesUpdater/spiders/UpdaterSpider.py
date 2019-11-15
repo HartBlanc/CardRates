@@ -31,11 +31,6 @@ VISA_URL = 'https://www.visa.co.uk/support/consumer/travel-support/exchange-rate
 VISA_XPATH = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
 
 
-# large text file, open and close
-with open('visa_form_data.txt') as f:
-    VISA_BASE_FORM = f.read()
-
-
 # UpdaterSpider
 class UpdaterSpider(scrapy.Spider):
     # Need name to call spider from terminal
