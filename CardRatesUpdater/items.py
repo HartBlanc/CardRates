@@ -10,9 +10,11 @@ import scrapy
 class updaterItem(scrapy.Item):
     card_c = scrapy.Field()
     trans_c = scrapy.Field()
-    visa_date = scrapy.Field()
-    master_date = scrapy.Field()
-    mvb = scrapy.Field()
-    M_Rate = scrapy.Field()
-    V_Rate = scrapy.Field()
-    depth = scrapy.Field()
+    date = scrapy.Field()
+    rate = scrapy.Field()
+
+    def __init__(self, card_c, trans_c, date, *args, **kwargs):
+        super(updaterItem, self).__init__(*args, **kwargs)
+        self['card_c'] = card_c
+        self.['trans_c'] = trans_c
+        self.['date'] = date
