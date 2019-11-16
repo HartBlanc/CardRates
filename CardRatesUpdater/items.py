@@ -16,5 +16,5 @@ class updaterItem(scrapy.Item):
     def __init__(self, card_c, trans_c, date, *args, **kwargs):
         super(updaterItem, self).__init__(*args, **kwargs)
         self['card_c'] = card_c
-        self.['trans_c'] = trans_c
-        self.['date'] = date
+        self['trans_c'] = trans_c
+        self['date'] = date

@@ -75,7 +75,7 @@ CONCURRENT_ITEMS = 50
 LOG_LEVEL = "INFO"
 FEED_URI = "mydata.csv"
 FEED_FORMAT = "csv"
-FEED_EXPORT_FIELDS = ["card_c", "trans_c", "master_date", "M_Rate", "V_Rate"]
+FEED_EXPORT_FIELDS = ["card_c", "trans_c", "date", "rate"]
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
