@@ -24,32 +24,6 @@ def date_id_to_date(date_id):
     # converts a date_id into a date
     return FIRST_DATE + datetime.timedelta(date_id - 1)
 
-def mc_date_string(date):
-    # converts a date object into the mastercard format
-    return date.strftime('%Y-%m-%d')
-
-def visa_date_fmt(date):
-    # converts a date object into the visa format
-    return date.strftime('%m/%d/%Y')
-
-def fetch_visa_alphaCds():
-    # creates a set of all codes that visa provides rates for
-    page = requests.get(VISA_URL)
-    tree = html.fromstring(page.content)
-    cur_xpath = '//*[@id="fromCurr"]/option/@value'
-    cds = {cd for cd in tree.xpath(cur_xpath) if len(cc) == 3}
-    assert len(cds) > 0
-    return cds
-
-def fetch_mc_alphaCds():
-    # creates a set of all codes that mastercard provides rates for
-    r = requests.get(MASTERCARD + SETTLEMENT,
-                     headers={"referer": MASTERCARD + SUPPORT})
-
-    cds = {x['alphaCd'] for x in r.json()['data']['currencies']}
-    assert len(cds) != 0
-    return cds
-
 def get_db_alphasCds(cur):
     # gets the list of all codes from the database
     # codes[i]+1 are the code ids
