@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9ea702b211a88de9c10c9809668b28e6cd71feefa1f1568e163be26de68a10d0"
+            "sha256": "cb48e0585da17ea002fbcd40da3d7ab4460bf02890daa2446b9281377892fcc8"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -260,14 +260,6 @@
             "index": "pypi",
             "version": "==1.8.0"
         },
-        "scrapyd": {
-            "hashes": [
-                "sha256:7887b2b6d1d84291528cb65b6a2cce95d630e027c32330e72a5aa16710a6c3cb",
-                "sha256:9afff46957794618daea93046bca58576d06c1a32b290134c051235971c32a9c"
-            ],
-            "index": "pypi",
-            "version": "==1.2.1"
-        },
         "scrapyd-client": {
             "hashes": [
                 "sha256:caa0f5369c2e1efa7b79c309afb9819b2518870c5f4f2caf84d3e474cd6a9890",
@@ -289,6 +281,13 @@
                 "sha256:30f610279e8b2578cab6db20741130331735c781b56053c59c4076da27f06b66"
             ],
             "version": "==1.13.0"
+        },
+        "sqlalchemy": {
+            "hashes": [
+                "sha256:afa5541e9dea8ad0014251bc9d56171ca3d8b130c9627c6cb3681cff30be3f8a"
+            ],
+            "index": "pypi",
+            "version": "==1.3.11"
         },
         "twisted": {
             "hashes": [

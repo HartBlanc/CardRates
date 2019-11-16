@@ -12,6 +12,7 @@ pytz = "*"
 scrapy = "*"
 scrapyd = "*"
 scrapyd-client = "*"
+sqlalchemy = "*"
 
 [requires]
 python_version = "3.7"

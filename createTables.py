@@ -1,20 +1,11 @@
+'''
+This module is responsible for initial creation of the database
+'''
+
 import sqlite3
 import requests
 from lxml import html
 import datetime
-from pre import drop_tables, MASTERCARD, SETTLEMENT, SUPPORT, FIRST_DATE
-
-
-def get_visa_currs_and_codes():
-    # creates a set of all codes that visa provides rates for
-    visa_url = 'https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html'
-    page = requests.get(visa_url)
-    tree = html.fromstring(page.content)
-    cur_xpath = '//*[@id="fromCurr"]/option'
-    options = tree.xpath(cur_xpath)
-    codes = {o.attrib['value']: o.text[:-6].upper() for o in options if len(o.attrib['value']) == 3}
-    assert len(codes) != 0
-    return codes
 
 
 def get_master_currs_and_codes():
@@ -43,31 +34,38 @@ def get_all_currs_and_codes():
 
 def createTables(cur):
 
-    cur.execute('''CREATE TABLE Currency_Codes (
-    currency text NOT NULL UNIQUE,
-    code text NOT NULL UNIQUE
+    cur.execute('''CREATE TABLE currency_codes (
+    curr_id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    alpha_code TEXT NOT NULL UNIQUE
     );''')
 
-    cur.execute('''CREATE TABLE Rates (
-     card_id INTEGER NOT NULL,
-     trans_id INTEGER NOT NULL,
-     date_id INTEGER NOT NULL,
-     mastercard REAL,
-     visa REAL,
-     UNIQUE(card_id, trans_id, date_id)
-     );''')
+    cur.execute('''CREATE TABLE dates (
+    date_id INTEGER NOT NULL PRIMARY KEY,
+    date TEXT NOT NULL UNIQUE
+    );''')
 
-    cur.execute('''CREATE TABLE Dates (
-     date TEXT NOT NULL UNIQUE
-     );''')
+    cur.execture('''CREATE TABLE providers
+    provider_id INTEGER NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+    );''')
+
+    cur.execute('''CREATE TABLE rates (
+    rate_id INTEGER NOT NULL PRIMARY KEY,
+    card_id INTEGER NOT NULL,
+    trans_id INTEGER NOT NULL,
+    date_id INTEGER NOT NULL,
+    provider_id INTEGER NOT NULL,
+    rate REAL,
+    UNIQUE(card_id, trans_id, date_id, provider_id)
+    );''')
 
 
 if __name__ == '__main__':
     con = sqlite3.connect('CardRates.db')
-    tables = ["Rates", "Dates", "Currency_codes"]
-    drop_tables(con, tables)
+    tables = ["Rates", "sates", "currency_codes"]
     createTables(con)
-    sql = 'INSERT into Currency_codes (code, currency) Values (?, ?)'
+    sql = 'INSERT into Currency_codes (alphaCd, name) Values (?, ?)'
     con.executemany(sql, get_all_currs_and_codes())
     numdays = 2000
     date_gen = ((FIRST_DATE + datetime.timedelta(days=x), )
