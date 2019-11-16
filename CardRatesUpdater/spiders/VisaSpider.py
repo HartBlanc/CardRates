@@ -36,7 +36,7 @@ class VisaSpider(scrapy.Spider):
         item = response.meta['item']
         try:
             item['rate'] = (response.xpath(Visa.rate_xpath).get()
-                                      .split()[0].replace(',', ''))
+                                    .split()[0].replace(',', ''))
         except AttributeError:
             item['rate'] = None
 

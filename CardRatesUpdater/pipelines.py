@@ -11,12 +11,13 @@ def get_code_list():
     con = sqlite3.connect('CardRates.sqlite')
     cur = con.cursor()
     cur.execute('SELECT code FROM Currency_Codes')
-    code_tuples=cur.fetchall()
+    code_tuples = cur.fetchall()
     # fetchall returns e.g. [(USD,)...]
-    codes = [ x[0] for x in code_tuples ]
+    codes = [x[0] for x in code_tuples]
     con.close()
     print("I got the code list!")
     return codes
+
 
 all_codes = get_code_list()
 print(all_codes)
@@ -31,7 +32,8 @@ class CardratesupdaterPipeline(object):
     @classmethod
     def from_crawler(cls, crawler):
         temp = cls()
-        crawler.signals.connect(temp.spider_closed, signal=scrapy.signals.spider_closed)
+        crawler.signals.connect(
+            temp.spider_closed, signal=scrapy.signals.spider_closed)
         return temp
 
     # methods to ensure database saves when spider closes
@@ -50,7 +52,7 @@ class CardratesupdaterPipeline(object):
 
     def storeInDb(self, item):
         self.cur.execute('''INSERT OR REPLACE INTO Rates(card_id, trans_id, date_id, mastercard, visa)
-        VALUES( ?, ?, ?, ?, ?)''', (all_codes.index(item['card_c']) + 1, all_codes.index(item['trans_c']) + 1, item['date_id'], item["M_Rate"], item["V_Rate"]))
+        VALUES( ?, ?, ?, ?, ?)''', (all_codes.index(item['card_c']) + 1, all_codes.index(item['trans_c']) + 1, item['date_id'], item['rate']))
         # randomnes means that database isn't saving after every iteration
         # unneccesarily
         if randint(1, 100) >= 99:

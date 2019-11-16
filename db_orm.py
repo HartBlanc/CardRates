@@ -104,7 +104,6 @@ class MC(Provider):
     date_fmt = '%Y-%m-%d'
     # self.name = "Mastercard"
 
-
     def __init__(self, *args, **kwargs):
 
         self.referer = self.MC_URL + self.MC_SUPPORT
@@ -197,10 +196,16 @@ def fake_data(base, db_name):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    usd_id = session.query(CurrencyCode.id).filter(CurrencyCode.alpha_code=='USD').first()
-    gbp_id = session.query(CurrencyCode.id).filter(CurrencyCode.alpha_code=='GBP').first()
+    usd_id = (session.query(CurrencyCode.id)
+                     .filter(CurrencyCode.alpha_code == 'USD')
+                     .first())
 
-    my_rate = Rate(card_id=usd_id[0], trans_id=gbp_id[0], date_id=976, provider_id=1, rate=1.5)
+    gbp_id = (session.query(CurrencyCode.id)
+                     .filter(CurrencyCode.alpha_code == 'GBP')
+                     .first())
+
+    my_rate = Rate(card_id=usd_id[0], trans_id=gbp_id[0],
+                   date_id=976, provider_id=1, rate=1.5)
     session.add(my_rate)
     session.commit()
 
@@ -212,14 +217,14 @@ def find_missing(base, db_name, provider):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    avail_currs = set(provider.avail_currs.keys()) 
+    avail_currs = set(provider.avail_currs.keys())
 
     end = (current_day() - Date.first_date).days
     start = end - 363
-    avail_dates = session.query(Date.id).filter(Date.id > start, Date.id <= end)
+    avail_dates = (session.query(Date.id)
+                          .filter(Date.id > start, Date.id <= end))
 
     all_combos = create_all_combos(avail_currs, avail_currs, avail_dates)
-
 
     CardAlias = aliased(CurrencyCode)
     not_missing = set(session.query(CardAlias.alpha_code, CurrencyCode.alpha_code, Rate.date_id)
@@ -234,7 +239,6 @@ def find_missing(base, db_name, provider):
 def results_to_csv(file_count, results, provider):
 
     results = (results[i::file_count] for i in range(file_count))
-
 
     in_path = Path('./input')
     out_path = Path('./output')
