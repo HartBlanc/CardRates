@@ -1,7 +1,6 @@
 from ..items import updaterItem
 import csv
 import scrapy
-from scrapy.shell import inspect_response
 import urllib
 from db_orm import Visa
 
