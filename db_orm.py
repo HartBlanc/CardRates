@@ -78,7 +78,7 @@ class Visa(Provider):
     rate_xpath = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
     date_fmt = '%m/%d/%Y'
     # name = "Visa"
-    rate_params = {'amount': 1, 'fee': 0.0, 'exchangedate': None,
+    rate_params = {'amount': '1', 'fee': '0.0', 'exchangedate': None,
                    'fromCurr': None, 'toCurr': None,
                    'submitButton': 'Calculate exchange rate'}
 
