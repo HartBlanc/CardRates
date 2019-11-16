@@ -1,2 +1,9 @@
 *.pyc
 *.db
+/build
+/eggs
+/input
+/logs
+/output
+/project.egg-info
+/twistd.pid
