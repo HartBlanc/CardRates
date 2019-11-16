@@ -34,8 +34,5 @@
     Multiply this by 2 to get approx total number of requests (Visa & Mastercard)
     Mastercard goes 1 year back so to download all is approximately 365 * 153 * 152 = 8,488,440 Entries
 
-    Nones occur when either the source (MC/Visa) does not provide that currency code, or an error occurred.
-    (Two Nones means that at least one error occurred)
-
     To view database in sorted order execute the following statement in a DB browser:
     SELECT * FROM Rates ORDER BY card_id ASC, trans_id ASC, date_id ASC;
