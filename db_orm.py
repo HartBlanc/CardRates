@@ -10,7 +10,9 @@ from pathlib import Path
 from lxml import html
 import requests
 import datetime
+import urllib
 import pytz
+
 
 Base = declarative_base()
 
@@ -98,16 +100,20 @@ class Visa(Provider):
 
 class MC(Provider):
 
-    MC_URL = 'https://www.mastercard.co.uk/'
-    MC_SETTLEMENT = 'settlement/currencyrate/settlement-currencies'
-    MC_SUPPORT = 'en-gb/consumers/get-support/convert-currency.html'
+    domain = 'mastercard.co.uk'
+    url = 'https://www.mastercard.co.uk/'
+    curr_url = 'settlement/currencyrate/settlement-currencies'
+    support_url = 'en-gb/consumers/get-support/convert-currency.html'
+    rate_url = self.url + "settlement/currencyrate/?'{}'/conversion-rate"
     date_fmt = '%Y-%m-%d'
-    # self.name = "Mastercard"
+
+    rate_params = {'fxDate': None, 'transCurr': None, 'crdhldBillCurr': None,
+                   'bankFee': '0.0', 'transAmt': '1'}
 
     def __init__(self, *args, **kwargs):
 
-        self.referer = self.MC_URL + self.MC_SUPPORT
-        self.api = self.MC_URL + self.MC_SETTLEMENT
+        self.referer = self.url + self.support_url
+        self.curr_api = self.url + self.curr_url
         self.name = "Mastercard"
         super(MC, self).__init__(*args, **kwargs)
 
@@ -119,6 +125,16 @@ class MC(Provider):
         # assert len(codes) != 0, 'No currencies found, check url and selector'
         # return codes
 
+    def params(date, tans_c, card_c):
+        params = dict(self.rate_params)
+        params['fxDate'] = date
+        params['transCurr'] = trans_c
+        params['crdhldBillCurr'] = card_c
+        return urllib.parse.urlencode(params)
+
+
+    def rate_url(date, trans_c, card_c):
+        return self.rate_url.format(self.params(date, trans_c, card_c))
 
 class CurrencyCode(Base):
     __tablename__ = 'currency_codes'
