@@ -1,12 +1,18 @@
 
-    Written using Scrapy 1.40 and Python 3.6
+    Please use the pipenv for easy setup
+    installation:
+        pip3 install pipenv
+        pipenv install (in top directory)
+    usage:
+        pipenv run python db_orm.py
+        pipenv shell
 
-    Before running spider for the first time use CreateTables.py to create the SQLite database.
+    Before running spider for the first time use db_orm.py to create the SQLite database.
 
     Spiders should be deployed using the scrapyd daemon.
 
     The general flow of the program is:
-    (pre.py)
+    (db_orm.py)
     1. check which currency codes and date ranges are available
     2. check which rates are missing from the database
     3. create a temporary input and output directory
