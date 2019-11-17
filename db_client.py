@@ -11,8 +11,9 @@ from db_orm import *
 class DbClient:
 
     def __init__(self, db_name, inpath, outpath, conn_string=None):
+        
         if conn_string is None:
-           conn_string = f'sqlite:///{db_name}.db'
+            conn_string = f'sqlite:///{db_name}.db'
 
         self.engine = create_engine(conn_string)
         self.Session = sessionmaker(bind=self.engine)
@@ -56,7 +57,7 @@ class DbClient:
     def create_tables(self, base):
         with self.session_scope() as s:
             
-            base.create_all()
+            base.create_all(self.engine)
 
             for p in [Visa(), MC()]:
                 s.add(p)
@@ -160,6 +161,6 @@ class DbClient:
 
 if __name__ == '__main__':
 
-    dbc = DbClient('my_db', './input', './output', )
-    dbc.results_to_csv(4, dbc.find_missing(Visa()), Visa())
+    dbc = DbClient('my_db', './MCinput', './MCoutput', )
+    dbc.results_to_csv(4, dbc.find_missing(MC()), MC())
     # dbc.import_results_from_csv(1)

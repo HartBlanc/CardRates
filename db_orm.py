@@ -106,12 +106,12 @@ class MC(Provider):
         super(MC, self).__init__(*args, **kwargs)
 
     def fetch_avail_currs(self):
-        return dict()
-        # r = requests.get(self.api, headers={"referer": self.referer})
-        # codes = {x['alphaCd']: x['currNam'].strip()
-        #          for x in r.json()['data']['currencies']}
-        # assert len(codes) != 0, 'No currencies found, check url and selector'
-        # return codes
+        # return dict()
+        r = requests.get(self.curr_api, headers={"referer": self.referer})
+        codes = {x['alphaCd']: x['currNam'].strip()
+                 for x in r.json()['data']['currencies']}
+        assert len(codes) != 0, 'No currencies found, check url and selector'
+        return codes
 
     def params(date, trans_c, card_c):
         params = dict(self.rate_params)
