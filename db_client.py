@@ -36,7 +36,7 @@ class DbClient:
     @staticmethod
     def create_all_combos(cur, l1, l2):
         # all combinations where the currencies aren't the same
-        return ((x, y, z) for (x, y, (z,)) in product(l1, l1, l2) if x != y)
+        return ((x, y, z) for (x, y, z) in product(l1, l1, l2) if x != y)
 
     @contextmanager
     def session_scope(self, commit=True):
