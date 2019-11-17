@@ -56,7 +56,6 @@ class UpdaterSpider(scrapy.Spider):
         if option == 'retry':
             # retry 8 times, wait 5 seconds between, handles server issues
             if depth < 8:
-                print('Depth: ', depth, 'Item:', item)
                 yield response.request.replace(dont_filter=True)
             else:
                 print('Dropping Item:', item)
