@@ -113,14 +113,14 @@ class MC(Provider):
         assert len(codes) != 0, 'No currencies found, check url and selector'
         return codes
 
-    def params(date, trans_c, card_c):
+    def params(self, date, trans_c, card_c):
         params = dict(self.rate_params)
         params['fxDate'] = date
         params['transCurr'] = trans_c
         params['crdhldBillCurr'] = card_c
         return urllib.parse.urlencode(params)
 
-    def rate_url(date, trans_c, card_c):
+    def rate_url(self, date, trans_c, card_c):
         return self.rate_url.format(self.params(date, trans_c, card_c))
 
 
