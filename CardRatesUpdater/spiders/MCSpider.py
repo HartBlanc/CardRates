@@ -2,9 +2,9 @@ from ..items import updaterItem
 import csv
 import json
 import scrapy
-import time
-import urllib
 from db_orm import MC
+from pathlib import Path
+
 
 def get_m_rate(response):
     # handles errors and returns the m_rate from json
@@ -33,12 +33,13 @@ class UpdaterSpider(scrapy.Spider):
     def __init__(self, data=None, number=None, *args, **kwargs):
         super(UpdaterSpider, self).__init__(*args, **kwargs)
         self.number = number
-        self.data = csv.reader(open('input/{}.csv'.format(number)))
+        self.data = csv.reader(Path(f'input/{number}.csv').open())
 
     # a generator function for the correct initial requests
     # (all codes and dates to correct formatted urls)
     def start_requests(self):
         for card_c, trans_c, date in self.data:
+            item = updaterItem(card_c, trans_c, date)
             yield (scrapy.Request(
                          url=MC.rate_url(date, trans_c, card_c),
                          headers={'referer': MC.url + MC.support_url},
@@ -62,8 +63,7 @@ class UpdaterSpider(scrapy.Spider):
         else:
             item['rate'] = option
 
-        wanted = {'card_c': None, 'trans_c': None, 'master_date': None,
-                  'V_Rate': None, 'M_Rate': None}
+        wanted = {'card_c': None, 'trans_c': None, 'date': None, 'rate': None}
         unwanted_keys = set(item.keys()) - set(wanted.keys())
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)

@@ -1,8 +1,8 @@
 from ..items import updaterItem
 import csv
 import scrapy
-import urllib
 from db_orm import Visa
+from pathlib import Path
 
 
 class VisaSpider(scrapy.Spider):
@@ -13,23 +13,13 @@ class VisaSpider(scrapy.Spider):
     def __init__(self, data=None, number=None, *args, **kwargs):
         super(VisaSpider, self).__init__(*args, **kwargs)
         self.number = number
-        self.data = csv.reader(open('input/{}.csv'.format(number)))
+        self.data = csv.reader(Path(f'input/{number}.csv').open())
 
     def start_requests(self):
         for card_c, trans_c, date in self.data:
-            yield self.v_request(updaterItem(card_c, trans_c, date))
-
-    def v_request(self, item):
-
-        # sends formatted request to visa and continues to the parse function
-        # passes on item through meta
-        params = dict(Visa.rate_params)
-        params['date'] = item['date']
-        params['fromCurr'] = item['card_c']
-        params['toCurr'] = item['trans_c']
-        url = f'{Visa.url}?{urllib.parse.urlencode(params)}'
-
-        return scrapy.Request(callback=self.parse, url=url, meta=dict(item=item))
+            item = updaterItem(card_c, trans_c, date)
+            url = Visa.rate_url(date, trans_c, card_c)
+            yield scrapy.Request(callback=self.parse, url=url, meta=dict(item=item))
 
     def parse(self, response):
         item = response.meta['item']
