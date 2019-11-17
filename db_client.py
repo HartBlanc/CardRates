@@ -54,14 +54,18 @@ class DbClient:
             session.close()
 
 
-    def create_tables(self, base):        
+    def create_tables(self, base, providers):        
         base.metadata.create_all(self.engine)
 
         with self.session_scope() as s:
-            for p in [MC()]:
+            for p in providers:
                 s.add(p)
-                s.add_all((CurrencyCode(name=name, alpha_code=alpha_code)
-                           for alpha_code, name in p.avail_currs.items()))
+                for alpha_code, name in p.avail_currs.items():
+                    try:  
+                        s.add(CurrencyCode(name=name, alpha_code=alpha_code))
+                        s.flush()
+                    except SQLAlchemyError:
+                        pass
 
         s.add_all((Date(date=Date.first_date + datetime.timedelta(days=x))
                         for x in range(0, Date.max_days)))
@@ -164,6 +168,6 @@ class DbClient:
 if __name__ == '__main__':
 
     dbc = DbClient('my_db', './MCinput', './MCoutput', )
-    dbc.create_tables(Base)
+    dbc.create_tables(Base, (Visa(), MC()))
     dbc.results_to_csv(4, dbc.find_missing(MC()), MC())
     # dbc.import_results_from_csv(1)
