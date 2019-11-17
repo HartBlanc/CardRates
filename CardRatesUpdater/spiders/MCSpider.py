@@ -41,7 +41,7 @@ class UpdaterSpider(scrapy.Spider):
         for card_c, trans_c, date in self.data:
             item = updaterItem(card_c, trans_c, date)
             yield (scrapy.Request(
-                         url=MC.rate_url(date, trans_c, card_c),
+                         url=MC.rate_url_p(date, trans_c, card_c),
                          headers={'referer': MC.url + MC.support_url},
                          meta=dict(item=item)))
 

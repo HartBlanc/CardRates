@@ -82,7 +82,7 @@ class Visa(Provider):
         return urllib.parse.urlencode(params)
 
     @classmethod
-    def rate_url(self, date, trans_c, card_c):
+    def rate_url_p(self, date, trans_c, card_c):
         return f'{self.url}?{self.params(date, trans_c, card_c)}'
 
 
@@ -122,7 +122,7 @@ class MC(Provider):
         return urllib.parse.urlencode(params)
 
     @classmethod
-    def rate_url(self, date, trans_c, card_c):
+    def rate_url_p(self, date, trans_c, card_c):
         return self.rate_url.format(self.params(date, trans_c, card_c))
 
 

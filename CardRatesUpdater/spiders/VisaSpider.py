@@ -18,7 +18,7 @@ class VisaSpider(scrapy.Spider):
     def start_requests(self):
         for card_c, trans_c, date in self.data:
             item = updaterItem(card_c, trans_c, date)
-            url = Visa.rate_url(date, trans_c, card_c)
+            url = Visa.rate_url_p(date, trans_c, card_c)
             yield scrapy.Request(callback=self.parse, url=url, meta=dict(item=item))
 
     def parse(self, response):
