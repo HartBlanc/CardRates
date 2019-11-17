@@ -58,7 +58,7 @@ class DbClient:
         base.metadata.create_all(self.engine)
 
         with self.session_scope() as s:
-            for p in [Visa(), MC()]:
+            for p in [MC()]:
                 s.add(p)
                 s.add_all((CurrencyCode(name=name, alpha_code=alpha_code)
                            for alpha_code, name in p.avail_currs.items()))
