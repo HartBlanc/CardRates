@@ -89,10 +89,9 @@ class DbClient:
 
             end = (self.current_day() - Date.first_date).days
             start = end - 363
-            avail_dates = (s.query(Date.id)
-                            .filter(Date.id > start, Date.id <= end))
+            avail_date_ids = range(start, end + 1)
 
-            all_combos = self.create_all_combos(avail_currs, avail_currs, avail_dates)
+            all_combos = self.create_all_combos(avail_currs, avail_currs, avail_date_ids)
 
             CardAlias = aliased(CurrencyCode)
             not_missing = set(s.query(CardAlias.alpha_code, CurrencyCode.alpha_code, Rate.date_id)
