@@ -165,5 +165,6 @@ class DbClient:
 if __name__ == '__main__':
 
     dbc = DbClient('my_db', './MCinput', './MCoutput', )
+    dbc.create_tables(Base)
     dbc.results_to_csv(4, dbc.find_missing(MC()), MC())
     # dbc.import_results_from_csv(1)
