@@ -92,7 +92,7 @@ class MC(Provider):
     url = 'https://www.mastercard.co.uk/'
     curr_url = 'settlement/currencyrate/settlement-currencies'
     support_url = 'en-gb/consumers/get-support/convert-currency.html'
-    rate_url = url + "settlement/currencyrate/?'{}'/conversion-rate"
+    rate_url = url + "settlement/currencyrate/?{}/conversion-rate"
     date_fmt = '%Y-%m-%d'
 
     rate_params = {'fxDate': None, 'transCurr': None, 'crdhldBillCurr': None,
