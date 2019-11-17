@@ -36,7 +36,7 @@ class DbClient:
     @staticmethod
     def create_all_combos(cur, l1, l2):
         # all combinations where the currencies aren't the same
-        return {(x, y, z) for (x, y, (z,)) in product(l1, l1, l2) if x != y}
+        return ((x, y, z) for (x, y, (z,)) in product(l1, l1, l2) if x != y)
 
     @contextmanager
     def session_scope(self, commit=True):
@@ -54,18 +54,17 @@ class DbClient:
             session.close()
 
 
-    def create_tables(self, base):
-        with self.session_scope() as s:
-            
-            base.create_all(self.engine)
+    def create_tables(self, base):        
+        base.metadata.create_all(self.engine)
 
+        with self.session_scope() as s:
             for p in [Visa(), MC()]:
                 s.add(p)
                 s.add_all((CurrencyCode(name=name, alpha_code=alpha_code)
                            for alpha_code, name in p.avail_currs.items()))
 
-            s.add_all((Date(date=Date.first_date + datetime.timedelta(days=x))
-                            for x in range(0, Date.max_days)))
+        s.add_all((Date(date=Date.first_date + datetime.timedelta(days=x))
+                        for x in range(0, Date.max_days)))
 
 
     def fake_data(self):
@@ -101,24 +100,28 @@ class DbClient:
                                .join(CurrencyCode, Rate.trans_id == CurrencyCode.id)
                                .filter(Rate.provider.has(name=provider.name)))
 
-        return list(all_combos-not_missing)
+        return (x for x in all_combos if x not in not_missing)
 
     # multiprocessing to be implemented
     def results_to_csv(self, file_count, results, provider):
 
-        results = [results[i::file_count] for i in range(file_count)]
-
         self.inpath.mkdir()
         self.outpath.mkdir()
 
-        for i, partial_results in enumerate(results):
-            print(f'writing {i+1}th file to disk')
-            (self.inpath / f'{i}.csv').touch()
-            with (self.inpath / f'{i}.csv').open(mode='w') as f:
-                for card_c, trans_c, date_id in partial_results:
-                    date = Date.first_date + datetime.timedelta(date_id - 1)
-                    date_string = provider.date_string(date)
-                    f.write(f'{card_c},{trans_c},{date_string}\n')
+        paths = tuple(self.inpath / f'{i}.csv' for i in range(file_count))
+        for p in paths:
+            p.touch()
+
+        try:
+            files = tuple(p.open(mode='w') for p in paths)
+            for i, (card_c, trans_c, date_id) in enumerate(results):
+                date = Date.first_date + datetime.timedelta(date_id - 1)
+                date_string = provider.date_string(date)
+                files[i % (file_count)].write(f'{card_c},{trans_c},{date_string}\n')
+
+        finally:
+            for f in files:
+                f.close()
 
     def alphaCd_to_id(self):
         with self.session_scope(False) as s:
