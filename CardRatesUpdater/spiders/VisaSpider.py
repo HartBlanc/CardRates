@@ -33,4 +33,4 @@ class VisaSpider(scrapy.Spider):
         unwanted_keys = set(item.keys()) - set(wanted.keys())
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
-        yield item
+        return item

@@ -55,13 +55,12 @@ class Visa(Provider):
     curr_xpath = '//*[@id="fromCurr"]/option'
     rate_xpath = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
     date_fmt = '%m/%d/%Y'
-    # name = "Visa"
+    name = "Visa"
     rate_params = {'amount': '1', 'fee': '0.0', 'exchangedate': None,
                    'fromCurr': None, 'toCurr': None,
                    'submitButton': 'Calculate exchange rate'}
 
     def __init__(self, *args, **kwargs):
-        self.name = "Visa"
         super(Visa, self).__init__(*args, **kwargs)
 
     def fetch_avail_currs(self):
@@ -94,6 +93,7 @@ class MC(Provider):
     support_url = 'en-gb/consumers/get-support/convert-currency.html'
     rate_url = url + "settlement/currencyrate/{}/conversion-rate"
     date_fmt = '%Y-%m-%d'
+    name = "Mastercard"
 
     rate_params = {'fxDate': None, 'transCurr': None, 'crdhldBillCurr': None,
                    'bankFee': '0.0', 'transAmt': '1'}
@@ -102,7 +102,6 @@ class MC(Provider):
 
         self.referer = self.url + self.support_url
         self.curr_api = self.url + self.curr_url
-        self.name = "Mastercard"
         super(MC, self).__init__(*args, **kwargs)
 
     def fetch_avail_currs(self):

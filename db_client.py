@@ -11,16 +11,13 @@ from db_orm import *
 
 class DbClient:
 
-    def __init__(self, db_name, inpath, outpath, conn_string=None):
+    def __init__(self, db_name, conn_string=None):
         
         if conn_string is None:
             conn_string = f'sqlite:///{db_name}.db'
 
         self.engine = create_engine(conn_string)
         self.Session = sessionmaker(bind=self.engine)
-
-        self.inpath = Path(inpath)
-        self.outpath = Path(outpath)
 
     @staticmethod
     def current_day():
@@ -61,18 +58,12 @@ class DbClient:
         with self.session_scope() as s:
             for p in providers:
                 s.add(p)
-                for alpha_code, name in p.avail_currs.items():
-                    try:  
-                        s.add(CurrencyCode(name=name, alpha_code=alpha_code))
-                        print('trying', alpha_code, name)
-                        s.commit()
-                        print('good', alpha_code, name)
-                    except IntegrityError:
-                        print('bad', alpha_code, name)
-                        s.rollback()
 
-        s.add_all((Date(date=Date.first_date + datetime.timedelta(days=x))
-                        for x in range(0, Date.max_days)))
+            for p in providers:
+                update_currencies(provider)
+
+            s.add_all((Date(date=Date.first_date + datetime.timedelta(days=x))
+                            for x in range(0, Date.max_days)))
 
 
     def fake_data(self):
@@ -110,12 +101,9 @@ class DbClient:
         return (x for x in all_combos if x not in not_missing)
 
     # multiprocessing to be implemented
-    def results_to_csv(self, file_count, results, provider):
+    def results_to_csv(self, file_count, results, provider, inpath):
 
-        self.inpath.mkdir()
-        self.outpath.mkdir()
-
-        paths = tuple(self.inpath / f'{i}.csv' for i in range(file_count))
+        paths = tuple(Path(inpath) / f'{i}.csv' for i in range(file_count))
         for p in paths:
             p.touch()
 
@@ -135,33 +123,44 @@ class DbClient:
             q = s.query(CurrencyCode.alpha_code, CurrencyCode.id)
         return {ac: id for ac, id in q}
 
-    def date_to_id(self, date):
-        d = datetime.datetime.strptime(date, '%m/%d/%Y').date()
+    def date_to_id(self, date, fmt):
+        d = datetime.datetime.strptime(date, fmt).date()
         return (d - Date.first_date).days + 1
 
-    def import_results_from_csv(self, provider_id):
+    def import_results_from_csv(self, provider, outpath):
         cd_to_id = self.alphaCd_to_id()
         
         with self.session_scope() as s:
-            
-            for file in self.outpath.glob('*.csv'):    
+            provider_id = s.query(Provider.id).filter(Provider.name==provider.name).first()[0]
+            print(provider_id)
+            print(provider.name)
+            for file in Path(outpath).glob('*.csv'):
                 print(file)            
                 with file.open() as f:
                     data = csv.reader(f)
                     next(data)
-                    s.add_all(Rate(card_id=cd_to_id[card_code],
+                    for card_code, trans_code, date, rate in data:
+                        if rate == '':
+                            continue
+                        s.add(Rate(card_id=cd_to_id[card_code],
                                    trans_id=cd_to_id[trans_code],
-                                   date_id=self.date_to_id(date),
+                                   date_id=self.date_to_id(date, provider.date_fmt),
                                    provider_id=provider_id,
-                                   rate=rate) 
-                              for card_code, trans_code, date, rate in data)
-
+                                   rate=rate))
                 file.unlink()
+            Path(outpath).rmdir()
         
-        self.outpath.rmdir()
+        
 
-    def insert_new_currency(self):
-        pass
+    def update_currencies(self, provider):
+        with self.session_scope() as s:
+            for alpha_code, name in provider.avail_currs.items():
+                try:
+                    s.add(CurrencyCode(name=name, alpha_code=alpha_code))
+                    s.commit()
+                except IntegrityError:
+                    s.rollback()
+
 
     def adjust_date_range(self):
         pass
@@ -171,7 +170,66 @@ class DbClient:
 
 if __name__ == '__main__':
 
-    dbc = DbClient('my_db', './MCinput', './MCoutput', )
-    dbc.create_tables(Base, (Visa(), MC()))
-    dbc.results_to_csv(4, dbc.find_missing(MC()), MC())
-    # dbc.import_results_from_csv(1)
+    input_key = ''
+    
+    db_name = input('what is the filename of your database?: ')
+    dbc = DbClient(db_name)
+
+    print('input q to quit')
+    while input_key != 'q':
+        print(''' 
+              1. create tables
+              2. export missing rates to csv
+              3. import scraped rates to db from csv
+              4. retrieve new currencies
+              ''')
+        input_key = input('What would you like to do?: ')
+        
+        if input_key == '1':
+            dbc.create_tables(Base, (Visa(), MC()))
+        
+        elif input_key == '2':
+            no_of_files = int(input('how many csv files?: '))
+            provider = input('Which provider?: ').replace(' ', '').lower()
+            inpath = input('csv file directory?: ')
+
+            if provider == 'visa':
+                dbc.results_to_csv(4, dbc.find_missing(Visa()), Visa(), inpath)
+
+            elif provider in ('mc', 'mastercard'):
+                dbc.results_to_csv(4, dbc.find_missing(MC()), MC(), inpath)
+
+            else:
+                print('provider not recognised: try visa or mc')
+
+        elif input_key == '3':
+            provider = input('Who is the provider?: ').replace(' ', '')
+            outpath = input('csv file directory?: ')
+
+            if provider == 'visa':
+                dbc.import_results_from_csv(Visa, outpath)
+
+            elif provider in ('mc', 'mastercard'):
+                dbc.import_results_from_csv(MC, outpath)
+
+            else:
+                print('provider not recognised: try visa or mc')
+
+        elif input_key == '4':
+            provider = input('Who is the provider?: ').replace(' ', '')
+
+            if provider == 'visa':
+                dbc.update_currencies(Visa())
+
+            elif provider in ('mc', 'mastercard'):
+                dbc.update_currencies(MC())
+
+            else:
+                print('provider not recognised: try visa or mc')
+
+
+        elif input_key == 'q':
+            break
+
+        else:
+            print('key not recognised, input 1, 2 or 3 or q to quit')

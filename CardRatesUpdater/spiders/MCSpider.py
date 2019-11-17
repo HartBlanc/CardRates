@@ -56,7 +56,7 @@ class UpdaterSpider(scrapy.Spider):
         if option == 'retry':
             # retry 8 times, wait 5 seconds between, handles server issues
             if depth < 8:
-                yield response.request.replace(dont_filter=True)
+                return response.request.replace(dont_filter=True)
             else:
                 print('Dropping Item:', item)
                 item['rate'] = None
@@ -68,4 +68,4 @@ class UpdaterSpider(scrapy.Spider):
         unwanted_keys = set(item.keys()) - set(wanted.keys())
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
-        yield item
+        return item
