@@ -15,7 +15,7 @@ def get_m_rate(response):
         if data['errorCode'] in ('104', '114'):
             return None
         elif data['errorCode'] in ('500', '401', '400'):
-            print("Server having technical problems")
+            # print("Server having technical problems")
             return 'retry'
         else:
             print("conversion rate too small")
