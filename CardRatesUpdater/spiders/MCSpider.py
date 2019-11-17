@@ -59,7 +59,9 @@ class UpdaterSpider(scrapy.Spider):
                 print('Depth: ', depth, 'Item:', item)
                 yield response.request.replace(dont_filter=True)
             else:
+                print('Dropping Item:', item)
                 item['rate'] = None
+
         else:
             item['rate'] = option
 
