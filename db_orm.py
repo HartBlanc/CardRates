@@ -92,7 +92,7 @@ class MC(Provider):
     url = 'https://www.mastercard.co.uk/'
     curr_url = 'settlement/currencyrate/settlement-currencies'
     support_url = 'en-gb/consumers/get-support/convert-currency.html'
-    rate_url = url + "settlement/currencyrate/?{}/conversion-rate"
+    rate_url = url + "settlement/currencyrate/{}/conversion-rate"
     date_fmt = '%Y-%m-%d'
 
     rate_params = {'fxDate': None, 'transCurr': None, 'crdhldBillCurr': None,
@@ -119,7 +119,11 @@ class MC(Provider):
         params['fxDate'] = date
         params['transCurr'] = trans_c
         params['crdhldBillCurr'] = card_c
-        return urllib.parse.urlencode(params)
+        param_string = []
+        for k, v in params.items():
+            param_string.append(f'{k}={v};')
+        
+        return ''.join(param_string)[:-1]
 
     @classmethod
     def rate_url_p(self, date, trans_c, card_c):
