@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, aliased
+from sqlalchemy.exc import IntegrityError
 from itertools import product
 from pathlib import Path
 from contextlib import contextmanager
@@ -63,9 +64,12 @@ class DbClient:
                 for alpha_code, name in p.avail_currs.items():
                     try:  
                         s.add(CurrencyCode(name=name, alpha_code=alpha_code))
-                        s.flush()
-                    except SQLAlchemyError:
-                        pass
+                        print('trying', alpha_code, name)
+                        s.commit()
+                        print('good', alpha_code, name)
+                    except IntegrityError:
+                        print('bad', alpha_code, name)
+                        s.rollback()
 
         s.add_all((Date(date=Date.first_date + datetime.timedelta(days=x))
                         for x in range(0, Date.max_days)))
