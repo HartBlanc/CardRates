@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import sqlite3
 import scrapy
-from random import randint
 from db_orm import Rate, Provider, CurrencyCode
-import datetime
+from datetime import datetime
 from sqlalchemy import create_engine
 from scrapy.utils.project import get_project_settings
 from sqlalchemy.orm import sessionmaker
@@ -14,9 +13,10 @@ class CardRatesUpdaterPipeline(object):
     def __init__(self):
         self.setupDBCon()
         self.cd_to_id = self.alphaCd_to_id()
+        self.commit_count = 0
 
     def open_spider(self, spider):
-        provider = spider.name.replace('Spider', '')
+        provider = spider.provider
         self.provider_id = (self.session.query(Provider.id)
                                         .filter(Provider.name == provider))
         self.date_fmt = spider.date_fmt
@@ -25,9 +25,8 @@ class CardRatesUpdaterPipeline(object):
         q = self.session.query(CurrencyCode.alpha_code, CurrencyCode.id)
         return {ac: id for ac, id in q}
 
-    def date_to_id(self, date):
-        d = datetime.datetime.strptime(date, self.date_fmt).date()
-        return (d - datetime.date(2016, 10, 14)).days + 1
+    def strpdate(self, spider_date):
+        return datetime.strptime(spider_date, self.date_fmt).date()
 
     # methods to ensure database saves when spider closes
     @classmethod
@@ -58,12 +57,15 @@ class CardRatesUpdaterPipeline(object):
     def storeInDb(self, item):
         self.session.add(Rate(card_id=self.cd_to_id[item['card_c']],
                               trans_id=self.cd_to_id[item['trans_c']],
-                              date_id=self.date_to_id(item['date']),
+                              date=self.strpdate(item['date']),
                               provider_id=self.provider_id,
                               rate=item['rate']))
-        # randomness means that database isn't saving excessively
-        if randint(1, 100) == 1:
+        
+        # Limit writing to disk to every 100 rows
+        if self.commit_count == 99:
             self.session.commit()
+
+        self.commit_count = (self.commit_count + 1) % 100
 
     def __del__(self):
         self.session.close()

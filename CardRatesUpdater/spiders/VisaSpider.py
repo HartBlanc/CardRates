@@ -1,15 +1,32 @@
+from scrapy.utils.project import get_project_settings
 from ..items import updaterItem
-import csv
 import scrapy
-from db_orm import Visa
+
+from datetime import datetime
+
 from pathlib import Path
+import csv
+
+import requests
+
+
+std_date_fmt = get_project_settings('STD_DATE_FMT')
 
 
 class VisaSpider(scrapy.Spider):
     # Need name to call spider from terminal
     name = 'VisaSpider'
+    allowed_domains = ['visa.co.uk']
+    provider = 'Visa'
+    
     date_fmt = '%m/%d/%Y'
-    allowed_domains = [Visa.domain]
+    url = 'https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html'
+    curr_xpath = '//*[@id="fromCurr"]/option'
+    rate_xpath = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
+    
+    rate_params = {'amount': '1', 'fee': '0.0', 'exchangedate': None,
+                   'fromCurr': None, 'toCurr': None,
+                   'submitButton': 'Calculate exchange rate'}
 
     def __init__(self, data=None, number=None, *args, **kwargs):
         super(VisaSpider, self).__init__(*args, **kwargs)
@@ -19,8 +36,14 @@ class VisaSpider(scrapy.Spider):
     def start_requests(self):
         for card_c, trans_c, date in self.data:
             item = updaterItem(card_c, trans_c, date)
-            url = Visa.rate_url_p(date, trans_c, card_c)
-            yield scrapy.Request(callback=self.parse, url=url, meta=dict(item=item))
+
+            params = dict(self.rate_params)
+            params['date'] = self.fmt_date(date)
+            params['fromCurr'] = card_c
+            params['toCurr'] = trans_c
+            url = f'{self.url}?{urllib.parse.urlencode(params)}'
+
+            yield scrapy.Request(url=url, meta=dict(item=item))
 
     def parse(self, response):
         item = response.meta['item']
@@ -35,3 +58,18 @@ class VisaSpider(scrapy.Spider):
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
         return item
+
+    @classmethod
+    def fetch_avail_currs(self):
+        page = requests.get(self.url)
+        tree = html.fromstring(page.content)
+        options = tree.xpath(self.curr_xpath)
+        codes = {o.attrib['value']: o.text[:-6].upper() for o in options
+                 if len(o.attrib['value']) == 3}
+        assert len(codes) != 0, 'No currencies found, check url and selector'
+        return codes
+
+    @classmethod
+    def fmt_date(self, std_date):
+        return (datetime.strptime(std_date, std_date_fmt)
+                        .strftime(self.date_fmt))
