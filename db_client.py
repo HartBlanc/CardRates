@@ -1,4 +1,5 @@
-from scrapy.utils.project import get_project_settings
+# -*- coding: utf-8 -*-
+from scrapy.utils.project import get_project_settings as settings
 
 from db_orm import CurrencyCode, Rate, Provider, Base
 
@@ -15,14 +16,14 @@ import datetime
 from pathlib import Path
 import csv
 
-std_date_fmt = get_project_settings('STD_DATE_FMT')
+std_date_fmt = settings().get('STD_DATE_FMT')
 
 
 class DbClient:
 
     def __init__(self):
 
-        self.engine = create_engine(get_project_settings().get("CONNECTION_STRING"))
+        self.engine = create_engine(settings().get("CONNECTION_STRING"))
         self.Session = sessionmaker(bind=self.engine)
 
     @staticmethod
@@ -52,7 +53,7 @@ class DbClient:
         finally:
             session.close()
 
-    def create_tables(self, base, providers):        
+    def create_tables(self, base, providers):
         base.metadata.create_all(self.engine)
 
         with self.session_scope() as s:
@@ -73,10 +74,11 @@ class DbClient:
             end = self.current_date()
             start = end - datetime.timedelta(days=363)
 
-            avail_dates = (end - datetime.timedelta(days=x) for x in range(363))
+            avail_dates = (end - datetime.timedelta(days=x)
+                           for x in range(363))
 
-            all_combos = ((x, y, z) for x, y, z 
-                          in product(avail_currs, avail_currs, avail_dates) 
+            all_combos = ((x, y, z) for x, y, z
+                          in product(avail_currs, avail_currs, avail_dates)
                           if x != y)
 
             CardAlias = aliased(CurrencyCode)

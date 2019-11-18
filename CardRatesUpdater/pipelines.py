@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-import sqlite3
 import scrapy
-from db_orm import Rate, Provider, CurrencyCode
+
 from datetime import datetime
+from scrapy.utils.project import get_project_settings as settings
+
+from db_orm import Rate, Provider, CurrencyCode
+
 from sqlalchemy import create_engine
-from scrapy.utils.project import get_project_settings
 from sqlalchemy.orm import sessionmaker
 
 
@@ -46,7 +48,7 @@ class CardRatesUpdaterPipeline(object):
             raise
 
     def setupDBCon(self):
-        engine = create_engine(get_project_settings().get("CONNECTION_STRING"))
+        engine = create_engine(settings().get("CONNECTION_STRING"))
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
@@ -60,7 +62,7 @@ class CardRatesUpdaterPipeline(object):
                               date=self.strpdate(item['date']),
                               provider_id=self.provider_id,
                               rate=item['rate']))
-        
+
         # Limit writing to disk to every 100 rows
         if self.commit_count == 99:
             self.session.commit()

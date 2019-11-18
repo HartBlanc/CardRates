@@ -1,4 +1,5 @@
-from scrapy.utils.project import get_project_settings
+# -*- coding: utf-8 -*-
+from scrapy.utils.project import get_project_settings as settings
 from ..items import updaterItem
 import scrapy
 
@@ -9,8 +10,7 @@ import csv
 
 import requests
 
-
-std_date_fmt = get_project_settings('STD_DATE_FMT')
+std_date_fmt = setting().get()('STD_DATE_FMT')
 
 
 class VisaSpider(scrapy.Spider):
@@ -18,12 +18,16 @@ class VisaSpider(scrapy.Spider):
     name = 'VisaSpider'
     allowed_domains = ['visa.co.uk']
     provider = 'Visa'
-    
+
     date_fmt = '%m/%d/%Y'
-    url = 'https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html'
+    url = '''
+             https://www.visa.co.uk/
+             support/consumer/travel-support/
+             exchange-rate-calculator.html
+          '''
     curr_xpath = '//*[@id="fromCurr"]/option'
     rate_xpath = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
-    
+
     rate_params = {'amount': '1', 'fee': '0.0', 'exchangedate': None,
                    'fromCurr': None, 'toCurr': None,
                    'submitButton': 'Calculate exchange rate'}

@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 from sqlalchemy import (Column, Integer, SmallInteger, String,
                         Float, Date, UniqueConstraint, ForeignKey)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
+
 
 class Provider(Base):
     __tablename__ = 'providers'
@@ -15,6 +17,7 @@ class Provider(Base):
     def __repr__(self):
         return f"<Provider(name='{self.name}')>"
 
+
 class CurrencyCode(Base):
     __tablename__ = 'currency_codes'
 
@@ -25,15 +28,23 @@ class CurrencyCode(Base):
     def __repr__(self):
         return f"CurrencyCode('{self.alpha_code}: {self.name})>"
 
+
 class Rate(Base):
     __tablename__ = 'rates'
     __table_args__ = (UniqueConstraint('card_id', 'trans_id',
                                        'date', 'provider_id'),)
 
     id = Column(Integer, primary_key=True)
-    card_id = Column(SmallInteger, ForeignKey('currency_codes.id'), nullable=False)
-    trans_id = Column(SmallInteger, ForeignKey('currency_codes.id'), nullable=False)
-    provider_id = Column(SmallInteger, ForeignKey('providers.id'), nullable=False)
+
+    card_id = Column(SmallInteger, ForeignKey('currency_codes.id'),
+                     nullable=False)
+
+    trans_id = Column(SmallInteger, ForeignKey('currency_codes.id'),
+                      nullable=False)
+
+    provider_id = Column(SmallInteger, ForeignKey('providers.id'),
+                         nullable=False)
+
     date = Column(Date, nullable=False)
     rate = Column(Float)
 
