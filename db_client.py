@@ -1,9 +1,11 @@
-from sqlalchemy import create_engine
+from scrapy.utils.project import get_project_settings
 from sqlalchemy.orm import sessionmaker, aliased
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import create_engine
+from scrapy.utils.project import get_project_settings
+from contextlib import contextmanager
 from itertools import product
 from pathlib import Path
-from contextlib import contextmanager
 import pytz
 import csv
 from db_orm import *
@@ -11,16 +13,10 @@ from db_orm import *
 
 class DbClient:
 
-    def __init__(self, db_name, inpath, outpath, conn_string=None):
-        
-        if conn_string is None:
-            conn_string = f'sqlite:///{db_name}.db'
+    def __init__(self):
 
-        self.engine = create_engine(conn_string)
+        self.engine = create_engine(get_project_settings().get("CONNECTION_STRING"))
         self.Session = sessionmaker(bind=self.engine)
-
-        self.inpath = Path(inpath)
-        self.outpath = Path(outpath)
 
     @staticmethod
     def current_day():
@@ -42,7 +38,7 @@ class DbClient:
     @contextmanager
     def session_scope(self, commit=True):
         """Provide a transactional scope around a series of operations."""
-        
+
         session = self.Session()
         try:
             yield session
@@ -54,7 +50,6 @@ class DbClient:
         finally:
             session.close()
 
-
     def create_tables(self, base, providers):        
         base.metadata.create_all(self.engine)
 
@@ -62,17 +57,15 @@ class DbClient:
             for p in providers:
                 s.add(p)
                 for alpha_code, name in p.avail_currs.items():
-                    try:  
+                    try:
                         s.add(CurrencyCode(name=name, alpha_code=alpha_code))
-                        print('trying', alpha_code, name)
                         s.commit()
-                        print('good', alpha_code, name)
                     except IntegrityError:
-                        print('bad', alpha_code, name)
                         s.rollback()
 
-        s.add_all((Date(date=Date.first_date + datetime.timedelta(days=x))
-                        for x in range(0, Date.max_days)))
+            s.add_all((Date(date=Date.first_date + datetime.timedelta(days=x))
+                   for x in range(0, Date.max_days)))
+
 
 
     def fake_data(self):
@@ -110,12 +103,10 @@ class DbClient:
         return (x for x in all_combos if x not in not_missing)
 
     # multiprocessing to be implemented
-    def results_to_csv(self, file_count, results, provider):
+    def results_to_csv(self, file_count, results, provider, inpath):
 
-        self.inpath.mkdir()
-        self.outpath.mkdir()
 
-        paths = tuple(self.inpath / f'{i}.csv' for i in range(file_count))
+        paths = tuple(Path(inpath) / f'{i}.csv' for i in range(file_count))
         for p in paths:
             p.touch()
 
@@ -139,13 +130,13 @@ class DbClient:
         d = datetime.datetime.strptime(date, '%m/%d/%Y').date()
         return (d - Date.first_date).days + 1
 
-    def import_results_from_csv(self, provider_id):
+    def import_results_from_csv(self, provider_id, outpath):
         cd_to_id = self.alphaCd_to_id()
-        
+
         with self.session_scope() as s:
-            
-            for file in self.outpath.glob('*.csv'):    
-                print(file)            
+
+            for file in Path(outpath).glob('*.csv'):
+                print(file)
                 with file.open() as f:
                     data = csv.reader(f)
                     next(data)
@@ -153,12 +144,8 @@ class DbClient:
                                    trans_id=cd_to_id[trans_code],
                                    date_id=self.date_to_id(date),
                                    provider_id=provider_id,
-                                   rate=rate) 
+                                   rate=rate)
                               for card_code, trans_code, date, rate in data)
-
-                file.unlink()
-        
-        self.outpath.rmdir()
 
     def insert_new_currency(self):
         pass
@@ -169,9 +156,8 @@ class DbClient:
     def indetify_outliers(self):
         pass
 
+
 if __name__ == '__main__':
 
-    dbc = DbClient('my_db', './MCinput', './MCoutput', )
+    dbc = DbClient()
     dbc.create_tables(Base, (Visa(), MC()))
-    dbc.results_to_csv(4, dbc.find_missing(MC()), MC())
-    # dbc.import_results_from_csv(1)

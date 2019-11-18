@@ -8,6 +8,7 @@ from pathlib import Path
 class VisaSpider(scrapy.Spider):
     # Need name to call spider from terminal
     name = 'VisaSpider'
+    date_fmt = '%m/%d/%Y'
     allowed_domains = [Visa.domain]
 
     def __init__(self, data=None, number=None, *args, **kwargs):
@@ -33,4 +34,4 @@ class VisaSpider(scrapy.Spider):
         unwanted_keys = set(item.keys()) - set(wanted.keys())
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
-        yield item
+        return item

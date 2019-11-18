@@ -17,7 +17,7 @@ class Provider(Base):
 
     # assumed that sqlalchemy won't allow null for pk
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String(50), nullable=False, unique=True)
 
     def __init__(self, *args, **kwargs):
         super(Provider, self).__init__(*args, **kwargs)
@@ -122,7 +122,7 @@ class MC(Provider):
         param_string = []
         for k, v in params.items():
             param_string.append(f'{k}={v};')
-        
+
         return ''.join(param_string)[:-1]
 
     @classmethod
@@ -134,7 +134,7 @@ class CurrencyCode(Base):
     __tablename__ = 'currency_codes'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String(50), nullable=False)
     alpha_code = Column(String(3), nullable=False, unique=True)
 
     def __repr__(self):
@@ -145,7 +145,7 @@ class Date(Base):
     __tablename__ = 'dates'
 
     id = Column(Integer, primary_key=True)
-    date = Column(String, nullable=False, unique=True)
+    date = Column(String(50), nullable=False, unique=True)
 
     first_date = datetime.date(2016, 10, 14)
     max_days = 2000

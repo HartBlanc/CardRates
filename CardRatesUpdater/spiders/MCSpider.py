@@ -24,14 +24,14 @@ def get_m_rate(response):
         return data['conversionRate']
 
 
-# UpdaterSpider
-class UpdaterSpider(scrapy.Spider):
+class MCSpider(scrapy.Spider):
     # Need name to call spider from terminal
     name = 'MCSpider'
+    date_fmt = '%Y-%m-%d'
     allowed_domains = [MC.domain]
 
     def __init__(self, data=None, number=None, *args, **kwargs):
-        super(UpdaterSpider, self).__init__(*args, **kwargs)
+        super(MCSpider, self).__init__(*args, **kwargs)
         self.number = number
         self.data = csv.reader(Path(f'input/{number}.csv').open())
 
@@ -68,4 +68,4 @@ class UpdaterSpider(scrapy.Spider):
         unwanted_keys = set(item.keys()) - set(wanted.keys())
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
-        yield item
+        return item
