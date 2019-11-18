@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 from scrapy.utils.project import get_project_settings as settings
 from ..items import updaterItem
-import csv
-import json
 import scrapy
-from pathlib import Path
-from datetime import datetime
-import requests
 
-std_date_fmt = settings().get()('STD_DATE_FMT')
+from datetime import datetime
+
+from pathlib import Path
+import csv
+
+import requests
+import json
+
+std_date_fmt = settings().get('STD_DATE_FMT')
 
 
 class MCSpider(scrapy.Spider):
@@ -24,44 +27,41 @@ class MCSpider(scrapy.Spider):
 
     date_fmt = '%Y-%m-%d'
 
-    err_msgs = {'104': None, '101': None '500': None '401': None '400': None,
+    err_msgs = {'104': None, '101': None, '500': None, '401': None, '400': None,
                 None: "conversion rate too small"}
 
     rate_params = {'fxDate': None, 'transCurr': None, 'crdhldBillCurr': None,
                    'bankFee': '0.0', 'transAmt': '1'}
 
-    def __init__(self, data=None, number=None, *args, **kwargs):
+    def __init__(self, data=None, inpath=None, *args, **kwargs):
         super(MCSpider, self).__init__(*args, **kwargs)
-        self.number = number
-        self.data = csv.reader(Path(f'input/{number}.csv').open())
+        self.data = csv.reader(Path(inpath).open())
 
     # a generator function for the correct initial requests
     # (all codes and dates to correct formatted urls)
     def start_requests(self):
         for card_c, trans_c, date in self.data:
-            date = self.fmt_date(date)
             item = updaterItem(card_c, trans_c, date)
 
             params = dict(self.rate_params)
             params['crdhldBillCurr'] = card_c
             params['transCurr'] = trans_c
-            params['fxDate'] = date
+            params['fxDate'] = self.fmt_date(date)
 
             param_string = ''.join([f'{k}={v};' for k, v in params.items()])[:-1]
 
             yield (scrapy.Request(
                 url=self.rate_url.format(param_string),
-                headers={'referer': MC.url + MC.support_url},
+                headers={'referer': self.support_url},
                 meta=dict(item=item)))
 
     def parse(self, response):
         item = response.meta['item']
-        depth = response.meta['depth']
 
         jresponse = json.loads(response.body_as_unicode())
         if 'errorCode' in jresponse['data']:
             errcd = jresponse['data']['errorCode']
-            print('Dropping Item:', item, 'Error msg:' self.err_msgs[errcd])
+            print('Dropping Item:', item, 'Error msg:', self.err_msgs[errcd])
             item['rate'] = None
 
         else:
@@ -75,14 +75,12 @@ class MCSpider(scrapy.Spider):
 
     @classmethod
     def fetch_avail_currs(self):
-        # return dict()
-        r = requests.get(self.curr_api, headers={"referer": self.referer})
+        r = requests.get(self.curr_url, headers={"referer": self.support_url})
         assert r.ok, "Request failed - ip may be blocked"
 
         codes = {x['alphaCd']: x['currNam'].strip()
                  for x in r.json()['data']['currencies']}
         assert len(codes) != 0, 'No currencies found, check url and selector'
-
         return codes
 
     @classmethod

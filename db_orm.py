@@ -10,6 +10,10 @@ Base = declarative_base()
 class Provider(Base):
     __tablename__ = 'providers'
 
+    # def __init__(spider, *args, **kwargs):
+    #     super(Provider, self).__init__(*args, **kwargs)
+    #     self.spider = spider
+
     # assumed that sqlalchemy won't allow null for pk
     id = Column(SmallInteger, primary_key=True)
     name = Column(String(50), nullable=False, unique=True)
@@ -21,9 +25,8 @@ class Provider(Base):
 class CurrencyCode(Base):
     __tablename__ = 'currency_codes'
 
-    id = Column(SmallInteger, primary_key=True)
+    alpha_code = Column(String(3), primary_key=True)
     name = Column(String(50), nullable=False)
-    alpha_code = Column(String(3), nullable=False, unique=True)
 
     def __repr__(self):
         return f"CurrencyCode('{self.alpha_code}: {self.name})>"
@@ -31,16 +34,16 @@ class CurrencyCode(Base):
 
 class Rate(Base):
     __tablename__ = 'rates'
-    __table_args__ = (UniqueConstraint('card_id', 'trans_id',
+    __table_args__ = (UniqueConstraint('card_code', 'trans_code',
                                        'date', 'provider_id'),)
 
     id = Column(Integer, primary_key=True)
 
-    card_id = Column(SmallInteger, ForeignKey('currency_codes.id'),
-                     nullable=False)
+    card_code = Column(String(3), ForeignKey('currency_codes.alpha_code'),
+                       nullable=False)
 
-    trans_id = Column(SmallInteger, ForeignKey('currency_codes.id'),
-                      nullable=False)
+    trans_code = Column(String(3), ForeignKey('currency_codes.alpha_code'),
+                        nullable=False)
 
     provider_id = Column(SmallInteger, ForeignKey('providers.id'),
                          nullable=False)
@@ -49,8 +52,8 @@ class Rate(Base):
     rate = Column(Float)
 
     provider = relationship('Provider')
-    card_code = relationship('CurrencyCode', foreign_keys=[card_id])
-    trans_code = relationship('CurrencyCode', foreign_keys=[trans_id])
+    card_curr = relationship('CurrencyCode', foreign_keys=[card_code])
+    card_curr = relationship('CurrencyCode', foreign_keys=[trans_code])
 
     def __repr__(self):
-        return f"<Rate({self.date} {self.provider.name}: {self.card_code.alpha_code}/{self.trans_code.alpha_code}  = {self.rate})>"
+        return f"<Rate({self.date} {self.provider.name}: {self.card_code}/{self.trans_code}  = {self.rate})>"

@@ -5,10 +5,14 @@ from db_orm import CurrencyCode, Rate, Provider, Base
 
 from sqlalchemy.orm import sessionmaker, aliased
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.schema import MetaData
 from sqlalchemy import create_engine
 
 from contextlib import contextmanager
 from itertools import product
+
+from scrapy.utils import project
+from scrapy import spiderloader
 
 from pytz import timezone
 import datetime
@@ -16,18 +20,24 @@ import datetime
 from pathlib import Path
 import csv
 
+
 std_date_fmt = settings().get('STD_DATE_FMT')
 
 
 class DbClient:
 
-    def __init__(self):
+    def __init__(self, echo=False):
 
-        self.engine = create_engine(settings().get("CONNECTION_STRING"))
+        self.engine = create_engine(settings().get("CONNECTION_STRING"), echo=echo)
         self.Session = sessionmaker(bind=self.engine)
+        self.metadata = MetaData(bind=self.engine)
+        self.metadata.reflect()
+        spider_loader = spiderloader.SpiderLoader.from_settings(settings())
+        s_names = spider_loader.list()
+        self.spiders =tuple(spider_loader.load(name) for name in s_names)
 
     @staticmethod
-    def current_day():
+    def current_date():
         # finds the latest day based on the mastercard definition
         now = datetime.datetime.now(timezone('US/Eastern'))
 
@@ -53,23 +63,23 @@ class DbClient:
         finally:
             session.close()
 
-    def create_tables(self, base, providers):
+    def create_tables(self, base):
         base.metadata.create_all(self.engine)
 
         with self.session_scope() as s:
-            for p in providers:
-                s.add(p)
-                for alpha_code, name in p.avail_currs.items():
-                    try:
-                        s.add(CurrencyCode(name=name, alpha_code=alpha_code))
-                        s.commit()
-                    except IntegrityError:
-                        s.rollback()
+            for spider in self.spiders:
+                s.add(Provider(name=spider.provider))
+                for alpha_code, name in spider.fetch_avail_currs().items():
+                    print(alpha_code, name)
+                    s.merge(CurrencyCode(alpha_code=alpha_code, name=name))
 
-    def find_missing(self, provider):
+    def missing(self, provider):
         with self.session_scope(False) as s:
 
-            avail_currs = set(provider.avail_currs.keys())
+            spider = next(spider for spider in self.spiders 
+                          if spider.provider == provider)
+
+            avail_currs = set(spider.fetch_avail_currs().keys())
 
             end = self.current_date()
             start = end - datetime.timedelta(days=363)
@@ -81,18 +91,17 @@ class DbClient:
                           in product(avail_currs, avail_currs, avail_dates)
                           if x != y)
 
-            CardAlias = aliased(CurrencyCode)
-            not_missing = set(s.query(CardAlias.alpha_code, CurrencyCode.alpha_code, Rate.date)
-                               .join(CardAlias, Rate.card_id == CardAlias.id)
-                               .join(CurrencyCode, Rate.trans_id == CurrencyCode.id)
-                               .filter(Rate.provider.has(name=provider.name)))
+            not_missing = set(s.query(Rate.card_code, Rate.trans_code, Rate.date)
+                               .filter(Rate.provider.has(name=provider)))
 
         return (x for x in all_combos if x not in not_missing)
 
     # multiprocessing to be implemented
-    def combos_to_csv(self, file_count, results, provider, inpath):
+    def combos_to_csv(self, file_count, results, outpath):
 
-        paths = tuple(Path(inpath) / f'{i}.csv' for i in range(file_count))
+        outpath = Path(outpath)
+        outpath.mkdir()
+        paths = tuple(outpath / f'{i}.csv' for i in range(file_count))
         for p in paths:
             p.touch()
 
@@ -109,27 +118,24 @@ class DbClient:
     def strpdate(self, date):
         return datetime.datetime.strptime(date, std_date_fmt).date()
 
-    def alphaCd_to_id(self):
-        with self.session_scope(False) as s:
-            q = s.query(CurrencyCode.alpha_code, CurrencyCode.id)
-        return {ac: id for ac, id in q}
-
-    def rates_from_csv(self, provider_id, outpath):
-        cd_to_id = self.alphaCd_to_id()
+    def rates_from_csv(self, provider_id, inpath):
 
         with self.session_scope() as s:
 
-            for file in Path(outpath).glob('*.csv'):
+            for file in Path(inpath).glob('*.csv'):
                 print(file)
                 with file.open() as f:
                     data = csv.reader(f)
                     next(data)
-                    s.add_all(Rate(card_id=cd_to_id[card_code],
-                                   trans_id=cd_to_id[trans_code],
+                    s.add_all(Rate(card_code=card_code,
+                                   trans_code=trans_code,
                                    date=self.strpdate(date),
                                    provider_id=provider_id,
                                    rate=rate)
                               for card_code, trans_code, date, rate in data)
+    
+    def drop_all_tables(self):
+        self.metadata.drop_all()
 
     def insert_new_currency(self):
         pass
@@ -143,4 +149,7 @@ class DbClient:
 
 if __name__ == '__main__':
     dbc = DbClient()
-    dbc.create_tables(Base, Provider(name='Visa'), Provider(name='Mastercard'))
+    dbc.drop_all_tables()
+    dbc.create_tables(Base)
+    dbc.combos_to_csv(4, dbc.missing('Mastercard'), 'MasterIn')
+

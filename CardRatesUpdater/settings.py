@@ -14,10 +14,6 @@ BOT_NAME = 'CardRatesUpdater'
 SPIDER_MODULES = ['CardRatesUpdater.spiders']
 NEWSPIDER_MODULE = 'CardRatesUpdater.spiders'
 
-
-
-
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'CardRatesUpdater (+http://www.yourdomain.com)'
 
@@ -113,7 +109,7 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 16
 CONNECTION_STRING = "{drivername}://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
     drivername="mysql",
     user="root",
-    passwd="mypw",
+    passwd="YOURPASSWORD",
     host="localhost",
     port="3306",
     db_name="CardRates",

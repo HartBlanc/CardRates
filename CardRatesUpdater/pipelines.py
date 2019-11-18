@@ -1,34 +1,29 @@
 # -*- coding: utf-8 -*-
-import scrapy
-
-from datetime import datetime
 from scrapy.utils.project import get_project_settings as settings
+import scrapy
 
 from db_orm import Rate, Provider, CurrencyCode
 
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
 
+from datetime import datetime
+
+std_date_fmt = settings().get('STD_DATE_FMT')
 
 class CardRatesUpdaterPipeline(object):
 
     def __init__(self):
         self.setupDBCon()
-        self.cd_to_id = self.alphaCd_to_id()
         self.commit_count = 0
 
     def open_spider(self, spider):
         provider = spider.provider
         self.provider_id = (self.session.query(Provider.id)
                                         .filter(Provider.name == provider))
-        self.date_fmt = spider.date_fmt
 
-    def alphaCd_to_id(self):
-        q = self.session.query(CurrencyCode.alpha_code, CurrencyCode.id)
-        return {ac: id for ac, id in q}
-
-    def strpdate(self, spider_date):
-        return datetime.strptime(spider_date, self.date_fmt).date()
+    def strpdate(self, std_date):
+        return datetime.strptime(std_date, std_date_fmt).date()
 
     # methods to ensure database saves when spider closes
     @classmethod
@@ -57,8 +52,8 @@ class CardRatesUpdaterPipeline(object):
         return item
 
     def storeInDb(self, item):
-        self.session.add(Rate(card_id=self.cd_to_id[item['card_c']],
-                              trans_id=self.cd_to_id[item['trans_c']],
+        self.session.add(Rate(card_code=item['card_c'],
+                              trans_code=item['trans_c'],
                               date=self.strpdate(item['date']),
                               provider_id=self.provider_id,
                               rate=item['rate']))
