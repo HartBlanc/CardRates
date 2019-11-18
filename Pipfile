@@ -13,6 +13,7 @@ scrapy = "*"
 scrapyd = "*"
 scrapyd-client = "*"
 sqlalchemy = "*"
+mysqlclient = "*"
 
 [requires]
 python_version = "3.7"

@@ -14,7 +14,6 @@ BOT_NAME = 'CardRatesUpdater'
 SPIDER_MODULES = ['CardRatesUpdater.spiders']
 NEWSPIDER_MODULE = 'CardRatesUpdater.spiders'
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'CardRatesUpdater (+http://www.yourdomain.com)'
 
@@ -68,14 +67,14 @@ CONCURRENT_ITEMS = 50
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#    'CardRatesUpdater.pipelines.CardratesupdaterPipeline': 300,
-# }
+ITEM_PIPELINES = {
+   'CardRatesUpdater.pipelines.CardRatesUpdaterPipeline': 300,
+}
 # DUPEFILTER_DEBUG = "True"
 LOG_LEVEL = "INFO"
-FEED_URI = "mydata.csv"
-FEED_FORMAT = "csv"
-FEED_EXPORT_FIELDS = ["card_c", "trans_c", "date", "rate"]
+# FEED_URI = "mydata.csv"
+# FEED_FORMAT = "csv"
+# FEED_EXPORT_FIELDS = ["card_c", "trans_c", "date", "rate"]
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -104,3 +103,18 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 16
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+## CUSTOM OPTIONS
+
+CONNECTION_STRING = "{drivername}://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
+    drivername="mysql",
+    user="root",
+    passwd="YOURPASSWORD",
+    host="localhost",
+    port="3306",
+    db_name="CardRates",
+)
+
+STD_DATE_FMT = '%d/%m/%Y'
+
+

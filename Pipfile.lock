@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "cb48e0585da17ea002fbcd40da3d7ab4460bf02890daa2446b9281377892fcc8"
+            "sha256": "89902c119673ecc06f46f01efb0b94ea5af1ffbd1da6287847697dba6f1ea0d5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -175,6 +175,16 @@
             "index": "pypi",
             "version": "==4.4.1"
         },
+        "mysqlclient": {
+            "hashes": [
+                "sha256:5c008e74b1c4a42271172c35f28a698cf79a7cba5d2bc811125e963f28001c34",
+                "sha256:6ad22de8ea3aba03ce1b202ed175e0c7a8b82fcdab8f57b1649c596550ed785a",
+                "sha256:a66a7a5f4ec71e8952e27a91a3fa8e0a3ab0682e223f1a007a77518058d0d1b5",
+                "sha256:e80109b0ae8d952b900b31b623181532e5e89376d707dcbeb63f99e69cefe559"
+            ],
+            "index": "pypi",
+            "version": "==1.4.5"
+        },
         "parsel": {
             "hashes": [
                 "sha256:4da4262ba4605573b6b72a5f557616a2fc9dee7a47a1efad562752a28d366723",
@@ -190,10 +200,10 @@
         },
         "pyasn1": {
             "hashes": [
-                "sha256:62cdade8b5530f0b185e09855dd422bc05c0bbff6b72ff61381c09dac7befd8c",
-                "sha256:a9495356ca1d66ed197a0f72b41eb1823cf7ea8b5bd07191673e8147aecf8604"
+                "sha256:39c7e2ec30515947ff4e87fb6f456dfc6e84857d34be479c9d4a4ba4bf46aa5d",
+                "sha256:aef77c9fb94a3ac588e87841208bdec464471d9871bd5050a287cc9a475cd0ba"
             ],
-            "version": "==0.4.7"
+            "version": "==0.4.8"
         },
         "pyasn1-modules": {
             "hashes": [
@@ -259,6 +269,14 @@
             ],
             "index": "pypi",
             "version": "==1.8.0"
+        },
+        "scrapyd": {
+            "hashes": [
+                "sha256:7887b2b6d1d84291528cb65b6a2cce95d630e027c32330e72a5aa16710a6c3cb",
+                "sha256:9afff46957794618daea93046bca58576d06c1a32b290134c051235971c32a9c"
+            ],
+            "index": "pypi",
+            "version": "==1.2.1"
         },
         "scrapyd-client": {
             "hashes": [

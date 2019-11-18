@@ -1,30 +1,58 @@
+# -*- coding: utf-8 -*-
+from scrapy.utils.project import get_project_settings as settings
 from ..items import updaterItem
-import csv
 import scrapy
-from db_orm import Visa
+
+from datetime import datetime
+
 from pathlib import Path
+import csv
+
+from lxml import html
+import requests
+import urllib
+
+std_date_fmt = settings().get('STD_DATE_FMT')
 
 
 class VisaSpider(scrapy.Spider):
     # Need name to call spider from terminal
     name = 'VisaSpider'
-    allowed_domains = [Visa.domain]
+    allowed_domains = ['visa.co.uk']
+    provider = 'Visa'
 
-    def __init__(self, data=None, number=None, *args, **kwargs):
+    date_fmt = '%m/%d/%Y'
+    url = ('https://www.visa.co.uk/'
+           'support/consumer/travel-support/'
+           'exchange-rate-calculator.html')
+
+    curr_xpath = '//*[@id="fromCurr"]/option'
+    rate_xpath = '//p[@class="currency-convertion-result h2"]/strong[1]/text()'
+
+    rate_params = {'amount': '1', 'fee': '0.0', 'exchangedate': None,
+                   'fromCurr': None, 'toCurr': None,
+                   'submitButton': 'Calculate exchange rate'}
+
+    def __init__(self, data=None, inpath=None, *args, **kwargs):
         super(VisaSpider, self).__init__(*args, **kwargs)
-        self.number = number
-        self.data = csv.reader(Path(f'input/{number}.csv').open())
+        self.data = csv.reader(Path(inpath).open())
 
     def start_requests(self):
         for card_c, trans_c, date in self.data:
             item = updaterItem(card_c, trans_c, date)
-            url = Visa.rate_url_p(date, trans_c, card_c)
-            yield scrapy.Request(callback=self.parse, url=url, meta=dict(item=item))
+
+            params = dict(self.rate_params)
+            params['date'] = self.fmt_date(date)
+            params['fromCurr'] = card_c
+            params['toCurr'] = trans_c
+            url = f'{self.url}?{urllib.parse.urlencode(params)}'
+
+            yield scrapy.Request(url=url, meta=dict(item=item))
 
     def parse(self, response):
         item = response.meta['item']
         try:
-            item['rate'] = (response.xpath(Visa.rate_xpath).get()
+            item['rate'] = (response.xpath(self.rate_xpath).get()
                                     .split()[0].replace(',', ''))
         except AttributeError:
             item['rate'] = None
@@ -33,4 +61,4 @@ class VisaSpider(scrapy.Spider):
         unwanted_keys = set(item.keys()) - set(wanted.keys())
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
-        return item
+

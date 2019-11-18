@@ -35,4 +35,4 @@
     Mastercard goes 1 year back so to download all is approximately 365 * 153 * 152 = 8,488,440 Entries
 
     To view database in sorted order execute the following statement in a DB browser:
-    SELECT * FROM Rates ORDER BY card_id ASC, trans_id ASC, date_id ASC;
+    SELECT * FROM Rates ORDER BY card_code ASC, trans_code ASC, date ASC;
