@@ -1,16 +1,15 @@
 [![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/)
 
 # CardRates
-CardRates is a tool for extracting daily fiat currency exchange rates from public websites. Currently the tool can be used to retrieve rates from the two international payment schemes - Visa and Mastercard with scope for other providers in the future.
+CardRates is a tool for extracting daily fiat currency exchange rates from public websites. Currently the tool can be used to retrieve rates from two international payment schemes - Visa and Mastercard with scope for other providers in the future.
 
 ## Motivation
 These exchange rates are publicly available on providers websites and can be retrieved easily for a single currency pair on a single date (e.g. GBP/USD for 1st of Jan 2019), which is useful for determining the rate you were charged for a transaction. However, it is not easy to retrieve data across dates and across many currency pairs. This kind of information is neccessary for consumers to make informed choices about which payment scheme to choose to get the best rates for their specific requirements.
 
-## Build status
+## Build Status
 Tests are currently in development, spiders are functioning as expected in the development environment.
 
-## Tech/framework used
-<b>Built with</b>
+## Built with
 - [Scrapy](https://github.com/scrapy/scrapy)
 - [Python](https://www.python.org/)
 - [SQLAlchemy](https://www.sqlalchemy.org/)
