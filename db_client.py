@@ -130,19 +130,21 @@ class DbClient:
         with self.session_scope() as s:
 
             provider_id = (s.query(Provider.id)
-                            .filter(Provider.name == provider))
+                            .filter(Provider.name == provider)
+                            .first()[0])
 
             for file in Path(inpath).glob('*.csv'):
                 print(file)
                 with file.open() as f:
                     data = csv.reader(f)
                     next(data)  # skip header row #
-                    s.add_all(Rate(card_code=card_code,
-                                   trans_code=trans_code,
-                                   date=self.strpdate(date),
-                                   provider_id=provider_id,
-                                   rate=rate)
-                              for card_code, trans_code, date, rate in data)
+                    rates = [Rate(card_code=card_code,
+                                  trans_code=trans_code,
+                                  date=self.strpdate(date, fmt='%m/%d/%Y'),
+                                  provider_id=provider_id,
+                                  rate=rate)
+                             for card_code, trans_code, date, rate in data]
+                    s.bulk_save_objects(rates)
                     s.commit()
 
     def update_currencies(self, provider):
@@ -159,6 +161,7 @@ class DbClient:
 
 
 if __name__ == '__main__':
-    dbc = DbClient(echo=True)
+    dbc = DbClient()
+    # dbc.rates_from_csv('Visa', 'output')
     dbc.create_tables()
     dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')
