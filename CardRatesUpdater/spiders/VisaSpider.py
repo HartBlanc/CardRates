@@ -52,8 +52,10 @@ class VisaSpider(scrapy.Spider):
     def parse(self, response):
         item = response.meta['item']
         try:
-            item['rate'] = (response.xpath(self.rate_xpath).get()
-                                    .split()[0].replace(',', ''))
+            item['rate'] = (response.xpath(self.rate_xpath)
+                                    .get()
+                                    .split()[0]
+                                    .replace(',', ''))
         except AttributeError:
             item['rate'] = None
 
@@ -62,3 +64,19 @@ class VisaSpider(scrapy.Spider):
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
 
+    @classmethod
+    def fetch_avail_currs(self):
+        page = requests.get(self.url)
+        r = requests.get(self.url)
+        tree = html.fromstring(page.content)
+        assert r.ok, "Request failed - ip may be blocked"
+        tree = html.fromstring(r.content)
+
+        options = tree.xpath(self.curr_xpath)
+        codes = {o.attrib['value']: o.text[:-6].upper() for o in options
+                 if len(o.attrib['value']) == 3}
+
+    @classmethod
+    def fmt_date(self, std_date):
+        return (datetime.strptime(std_date, std_date_fmt)
+                        .strftime(self.date_fmt))
