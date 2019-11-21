@@ -26,10 +26,17 @@ std_date_fmt = settings().get('STD_DATE_FMT')
 
 class DbClient:
 
+    def __init__(self, echo):
 
-
-        self.engine = create_engine(settings().get("CONNECTION_STRING"), echo=echo)
+        self.engine = create_engine(settings().get("CONNECTION_STRING"),
+                                    echo=echo)
         self.Session = sessionmaker(bind=self.engine)
+        self.metadata = MetaData(bind=self.engine)
+        self.metadata.reflect()
+
+        spider_loader = spiderloader.SpiderLoader.from_settings(settings())
+        s_names = spider_loader.list()
+        self.spiders = tuple(spider_loader.load(name) for name in s_names)
 
     @staticmethod
     def current_date():
@@ -58,21 +65,25 @@ class DbClient:
         finally:
             session.close()
 
-    def create_tables(self, base):
+    def create_tables(self, base, providers):
         base.metadata.create_all(self.engine)
 
         with self.session_scope() as s:
-
+            for p in providers:
+                s.add(p)
+                self.update_currencies(provider)
 
     def missing(self, provider):
-        with self.session_scope(False) as s:
+        with self.session_scope(commit=False) as s:
 
-            spider = next(spider for spider in self.spiders 
+            spider = next(spider for spider in self.spiders
                           if spider.provider == provider)
 
             avail_currs = set(spider.fetch_avail_currs().keys())
 
             end = self.current_date()
+
+            # paramaterise star/end
             start = end - datetime.timedelta(days=363)
 
             avail_dates = (end - datetime.timedelta(days=x)
@@ -82,42 +93,53 @@ class DbClient:
                           in product(avail_currs, avail_currs, avail_dates)
                           if x != y)
 
-            not_missing = set(s.query(Rate.card_code, Rate.trans_code, Rate.date)
+            not_missing = set(s.query(Rate.card_code, Rate.trans_code,
+                                      Rate.date)
                                .filter(Rate.provider.has(name=provider)))
 
         return (x for x in all_combos if x not in not_missing)
 
     # multiprocessing to be implemented
+    def combos_to_csv(self, file_count, results, outpath):
 
+        outpath = Path(outpath)
 
+        # try/except if file exists
+        outpath.mkdir()
+
+        paths = tuple(outpath / f'{i}.csv' for i in range(file_count))
 
         for p in paths:
             p.touch()
 
         try:
-            files = tuple(p.open(mode='w') for p in paths)
+            fs = tuple(p.open(mode='w') for p in paths)
             for i, (card_c, trans_c, date) in enumerate(results):
-                date_string = date.strftime(std_date_fmt)
-                files[i % (file_count)].write(f'{card_c},{trans_c},{date_string}\n')
+                std_date = date.strftime(std_date_fmt)
+                fs[i % (file_count)].write(f'{card_c},{trans_c},{std_date}\n')
 
         finally:
-            for f in files:
+            for f in fs:
                 f.close()
 
     def strpdate(self, date):
         return datetime.datetime.strptime(date, std_date_fmt).date()
 
-
-
+    def rates_from_csv(self, provider_id, inpath):
 
         with self.session_scope() as s:
 
+            for file in Path(inpath).glob('*.csv'):
+                print(file)
                 with file.open() as f:
                     data = csv.reader(f)
-                    next(data)
-
+                    next(data)  # skip header row #
+                    s.add_all(Rate(card_code=card_code,
+                                   trans_code=trans_code,
+                                   date=self.strpdate(date),
                                    provider_id=provider_id,
-
+                                   rate=rate)
+                              for card_code, trans_code, date, rate in data)
 
     def update_currencies(self, provider):
         with self.session_scope() as s:
@@ -128,12 +150,8 @@ class DbClient:
                 except IntegrityError:
                     s.rollback()
 
-
-    def adjust_date_range(self):
-        pass
-
-    def indetify_outliers(self):
-        pass
+    def drop_all_tables(self):
+        self.metadata.drop_all()
 
 
 if __name__ == '__main__':
@@ -141,5 +159,3 @@ if __name__ == '__main__':
     dbc.drop_all_tables()
     dbc.create_tables(Base)
     dbc.combos_to_csv(4, dbc.missing('Mastercard'), 'MasterIn')
-
-

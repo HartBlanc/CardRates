@@ -10,17 +10,12 @@ Base = declarative_base()
 class Provider(Base):
     __tablename__ = 'providers'
 
-    # def __init__(spider, *args, **kwargs):
-    #     super(Provider, self).__init__(*args, **kwargs)
-    #     self.spider = spider
-
     # assumed that sqlalchemy won't allow null for pk
     id = Column(SmallInteger, primary_key=True)
     name = Column(String(50), nullable=False, unique=True)
 
     def __repr__(self):
         return f"<Provider(name='{self.name}')>"
-
 
 
 class CurrencyCode(Base):
@@ -57,4 +52,5 @@ class Rate(Base):
     card_curr = relationship('CurrencyCode', foreign_keys=[trans_code])
 
     def __repr__(self):
-        return f"<Rate({self.date} {self.provider.name}: {self.card_code}/{self.trans_code}  = {self.rate})>"
+        return (f"<Rate({self.date} {self.provider.name}: "
+                f"{self.card_code}/{self.trans_code}  = {self.rate})>")
