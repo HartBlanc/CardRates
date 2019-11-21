@@ -37,7 +37,7 @@ $ echo MYSQL_PW=YOUR_PASSWORD >.env
 
 ### Installing Packages
 ```shell
-$ pipenv install (include --dev flag for development packages)
+$ pipenv install  # include --dev flag for development packages
 $ pipenv shell
 ```
 
