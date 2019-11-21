@@ -125,9 +125,12 @@ class DbClient:
     def strpdate(self, date):
         return datetime.datetime.strptime(date, std_date_fmt).date()
 
-    def rates_from_csv(self, provider_id, inpath):
+    def rates_from_csv(self, provider, inpath):
 
         with self.session_scope() as s:
+
+            provider_id = next(s.query(Provider.id)
+                                .filter(Provider.Name == provider))
 
             for file in Path(inpath).glob('*.csv'):
                 print(file)
@@ -156,6 +159,4 @@ class DbClient:
 
 if __name__ == '__main__':
     dbc = DbClient()
-    dbc.drop_all_tables()
-    dbc.create_tables(Base)
     dbc.combos_to_csv(4, dbc.missing('Mastercard'), 'MasterIn')
