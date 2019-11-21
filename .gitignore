@@ -1,5 +1,6 @@
 *.pyc
 *.db
+*.env
 /build
 /eggs
 /input

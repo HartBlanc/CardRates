@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from os import environ
 
 # Scrapy settings for CardRatesUpdater project
 #
@@ -109,12 +110,10 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 16
 CONNECTION_STRING = "{drivername}://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
     drivername="mysql",
     user="root",
-    passwd="YOURPASSWORD",
+    passwd=environ['MYSQL_PW'],
     host="localhost",
     port="3306",
     db_name="CardRates",
 )
 
 STD_DATE_FMT = '%d/%m/%Y'
-
-
