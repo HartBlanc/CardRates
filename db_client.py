@@ -26,7 +26,7 @@ std_date_fmt = settings().get('STD_DATE_FMT')
 
 class DbClient:
 
-    def __init__(self, echo):
+    def __init__(self, echo=False):
 
         self.engine = create_engine(settings().get("CONNECTION_STRING"),
                                     echo=echo)
@@ -122,15 +122,15 @@ class DbClient:
             for f in fs:
                 f.close()
 
-    def strpdate(self, date):
-        return datetime.datetime.strptime(date, std_date_fmt).date()
+    def strpdate(self, date, fmt=std_date_fmt):
+        return datetime.datetime.strptime(date, fmt).date()
 
     def rates_from_csv(self, provider, inpath):
 
         with self.session_scope() as s:
 
-            provider_id = next(s.query(Provider.id)
-                                .filter(Provider.Name == provider))
+            provider_id = (s.query(Provider.id)
+                            .filter(Provider.name == provider))
 
             for file in Path(inpath).glob('*.csv'):
                 print(file)
@@ -143,6 +143,7 @@ class DbClient:
                                    provider_id=provider_id,
                                    rate=rate)
                               for card_code, trans_code, date, rate in data)
+                    s.commit()
 
     def update_currencies(self, provider):
         with self.session_scope() as s:
@@ -158,5 +159,6 @@ class DbClient:
 
 
 if __name__ == '__main__':
-    dbc = DbClient()
-    dbc.combos_to_csv(4, dbc.missing('Mastercard'), 'MasterIn')
+    dbc = DbClient(echo=True)
+    dbc.create_tables()
+    dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')
