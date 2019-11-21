@@ -11,6 +11,7 @@ from datetime import datetime
 
 std_date_fmt = settings().get('STD_DATE_FMT')
 
+
 class CardRatesUpdaterPipeline(object):
 
     def __init__(self):
