@@ -4,7 +4,7 @@
 CardRates is a tool for extracting daily fiat currency exchange rates from public websites. Currently the tool can be used to retrieve rates from two international payment schemes - Visa and Mastercard with scope for other providers in the future.
 
 ## Motivation
-These exchange rates are publicly available on providers websites and can be retrieved easily for a single currency pair on a single date (e.g. GBP/USD for 1st of Jan 2019), which is useful for determining the rate you were charged for a transaction. However, it is not easy to retrieve data across dates and across many currency pairs. This kind of information is neccessary for consumers to make informed choices about which payment scheme to choose to get the best rates for their specific requirements.
+Exchange rates are publicly available on providers websites and can be retrieved easily for a single currency pair on a single date (e.g. GBP/USD for 1st of Jan 2019). This is useful for determining the rate you were charged for a transaction. However, it is not easy to retrieve data across dates and across many currency pairs. This kind of information is neccessary for consumers to make informed choices about which payment scheme to choose to get the best rates for their specific requirements.
 
 ## Build Status
 Tests are currently in development, spiders are functioning as expected in the development environment.
@@ -33,7 +33,9 @@ $ scrapy crawl VisaSpider -a inpath=input/0.csv
 first update CardRatesUpdater/settings.py with your database details.
 And create a .env at the root of CardRates file with your database password if neccessary
 
+```shell
 $ echo MYSQL_PW=YOUR_PASSWORD >.env
+```
 
 ### Installing Packages
 ```shell
@@ -49,3 +51,6 @@ $ python db_client.py
 ```shell
 $ scrapy crawl VisaSpider -a inpath=input/0.csv
 ```
+
+## Contact
+callumjameshart@gmail.com
