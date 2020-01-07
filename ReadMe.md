@@ -31,7 +31,7 @@ $ scrapy crawl VisaSpider -a inpath=input/0.csv
 
 ### Database Config
 first update CardRatesUpdater/settings.py with your database details.
-And create a .env at the root of CardRates file with your database password if neccessary
+And create a .env file at the root of CardRates with your database password if neccessary
 
 ```shell
 $ echo MYSQL_PW=YOUR_PASSWORD >.env
