@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from scrapy.utils.project import get_project_settings as settings
-from ..items import updaterItem
+from ..items import UpdaterItem
 import scrapy
 
 from datetime import datetime
@@ -42,7 +42,7 @@ class MCSpider(scrapy.Spider):
     # (formatted urls from currency alphaCds and dates)
     def start_requests(self):
         for card_c, trans_c, date in self.data:
-            item = updaterItem(card_c, trans_c, date)
+            item = UpdaterItem(card_c, trans_c, date)
 
             params = dict(self.rate_params)
             params['crdhldBillCurr'] = card_c

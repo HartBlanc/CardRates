@@ -7,14 +7,14 @@
 import scrapy
 
 
-class updaterItem(scrapy.Item):
+class UpdaterItem(scrapy.Item):
     card_c = scrapy.Field()
     trans_c = scrapy.Field()
     date = scrapy.Field()
     rate = scrapy.Field()
 
     def __init__(self, card_c, trans_c, date, *args, **kwargs):
-        super(updaterItem, self).__init__(*args, **kwargs)
+        super(UpdaterItem, self).__init__(*args, **kwargs)
         self['card_c'] = card_c
         self['trans_c'] = trans_c
         self['date'] = date

@@ -100,14 +100,15 @@ class DbClient:
         return (x for x in all_combos if x not in not_missing)
 
     # multiprocessing to be implemented
-    def combos_to_csv(self, file_count, results, outpath):
+    @staticmethod
+    def combos_to_csv(file_count, results, out_path):
 
-        outpath = Path(outpath)
+        out_path = Path(out_path)
 
         # try/except if file exists
-        outpath.mkdir()
+        out_path.mkdir()
 
-        paths = tuple(outpath / f'{i}.csv' for i in range(file_count))
+        paths = tuple(out_path / f'{i}.csv' for i in range(file_count))
 
         for p in paths:
             p.touch()
@@ -116,14 +117,11 @@ class DbClient:
             fs = tuple(p.open(mode='w') for p in paths)
             for i, (card_c, trans_c, date) in enumerate(results):
                 std_date = date.strftime(std_date_fmt)
-                fs[i % (file_count)].write(f'{card_c},{trans_c},{std_date}\n')
+                fs[i % file_count].write(f'{card_c},{trans_c},{std_date}\n')
 
         finally:
             for f in fs:
                 f.close()
-
-    def strpdate(self, date, fmt=std_date_fmt):
-        return datetime.datetime.strptime(date, fmt).date()
 
     def rates_from_csv(self, provider, inpath):
 

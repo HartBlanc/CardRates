@@ -10,7 +10,7 @@ Base = declarative_base()
 class Provider(Base):
     __tablename__ = 'providers'
 
-    # assumed that sqlalchemy won't allow null for pk
+    # assumed that SQLAlchemy won't allow null for pk
     id = Column(SmallInteger, primary_key=True)
     name = Column(String(50), nullable=False, unique=True)
 

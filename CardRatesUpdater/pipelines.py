@@ -36,23 +36,23 @@ class CardRatesUpdaterPipeline(object):
 
     # methods to ensure database saves when spider closes
     def spider_closed(self, reason):
-        print("Commiting changes")
+        print("Committing changes")
         try:
             self.session.commit()
         except Exception:
             self.session.rollback()
             raise
 
-    def setupDBCon(self):
+    def setup_db_con(self):
         engine = create_engine(settings().get("CONNECTION_STRING"))
-        Session = sessionmaker(bind=engine)
-        self.session = Session()
+        session = sessionmaker(bind=engine)
+        self.session = session()
 
     def process_item(self, item, spider):
-        self.storeInDb(item)
+        self.store_in_db(item)
         return item
 
-    def storeInDb(self, item):
+    def store_in_db(self, item):
         self.session.add(Rate(card_code=item['card_c'],
                               trans_code=item['trans_c'],
                               date=self.strpdate(item['date']),
