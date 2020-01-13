@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from scrapy.utils.project import get_project_settings as settings
+from ..db_client import strpdate
 import scrapy
 
 from db_orm import Rate, Provider, CurrencyCode
@@ -55,7 +56,7 @@ class CardRatesUpdaterPipeline(object):
     def store_in_db(self, item):
         self.session.add(Rate(card_code=item['card_c'],
                               trans_code=item['trans_c'],
-                              date=self.strpdate(item['date']),
+                              date=strpdate(item['date']),
                               provider_id=self.provider_id,
                               rate=item['rate']))
 

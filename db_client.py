@@ -24,6 +24,10 @@ import csv
 std_date_fmt = settings().get('STD_DATE_FMT')
 
 
+def strpdate(date, fmt=std_date_fmt):
+    return datetime.datetime.strptime(date, fmt).date()
+
+
 class DbClient:
 
     def __init__(self, echo=False):
@@ -138,7 +142,7 @@ class DbClient:
                     next(data)  # skip header row #
                     rates = [Rate(card_code=card_code,
                                   trans_code=trans_code,
-                                  date=self.strpdate(date, fmt='%m/%d/%Y'),
+                                  date=strpdate(date, fmt='%m/%d/%Y'),
                                   provider_id=provider_id,
                                   rate=rate)
                              for card_code, trans_code, date, rate in data]
