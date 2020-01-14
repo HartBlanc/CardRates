@@ -35,7 +35,7 @@ def db_client():
 def test_strpdate():
     from src.db_client import strpdate
     assert strpdate("10/09/1995") == TEST_DATE
-    assert strpdate("10/10/1995", "%m/%d/%Y") == TEST_DATE
+    assert strpdate("09/10/1995", "%m/%d/%Y") == TEST_DATE
 
 
 def test_current_date():
