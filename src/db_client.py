@@ -8,6 +8,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import MetaData
 from sqlalchemy import create_engine
 
+from sqlalchemy_utils.functions import create_database, drop_database
+
 from contextlib import contextmanager
 from itertools import product
 
@@ -30,17 +32,22 @@ def strpdate(date, fmt=std_date_fmt):
 
 class DbClient:
 
-    def __init__(self, echo=False):
+    def __init__(self, conn_string=settings().get("CONNECTION_STRING"), new=False, echo=False):
 
-        self.engine = create_engine(settings().get("CONNECTION_STRING"),
+        self.engine = create_engine(conn_string,
                                     echo=echo)
         self.Session = sessionmaker(bind=self.engine)
         self.metadata = MetaData(bind=self.engine)
-        self.metadata.reflect()
 
         spider_loader = spiderloader.SpiderLoader.from_settings(settings())
         s_names = spider_loader.list()
         self.spiders = tuple(spider_loader.load(name) for name in s_names)
+
+        if new:
+            create_database(self.engine.url)
+            self.create_tables(Base)
+        else:
+            self.metadata.reflect()
 
     @staticmethod
     def current_date():
@@ -69,13 +76,14 @@ class DbClient:
         finally:
             session.close()
 
-    def create_tables(self, base, providers):
+    def create_tables(self, base):
         base.metadata.create_all(self.engine)
 
         with self.session_scope() as s:
-            for p in providers:
-                s.add(p)
-                self.update_currencies(provider)
+            providers = [s.provider for s in self.spiders]
+            for pid, p_name in enumerate(providers):
+                s.add(Provider(id=pid + 1, name=p_name))
+                self.update_currencies(p_name)
 
     def missing(self, provider):
         with self.session_scope(commit=False) as s:
@@ -150,16 +158,20 @@ class DbClient:
                     s.commit()
 
     def update_currencies(self, provider):
+        spider = next(s for s in self.spiders if s.provider == provider)
         with self.session_scope() as s:
-            for alpha_code, name in provider.avail_currs.items():
+            for alpha_code, name in spider.fetch_avail_currs().items():
                 try:
-                    s.add(CurrencyCode(name=name, alpha_code=alpha_code))
+                    s.add(CurrencyCode(alpha_code=alpha_code, name=name))
                     s.commit()
                 except IntegrityError:
                     s.rollback()
 
     def drop_all_tables(self):
         self.metadata.drop_all()
+
+    def drop_database(self):
+        drop_database(self.engine.url)
 
 
 if __name__ == '__main__':
