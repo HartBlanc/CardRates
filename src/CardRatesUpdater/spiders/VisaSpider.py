@@ -76,6 +76,8 @@ class VisaSpider(scrapy.Spider):
         codes = {o.attrib['value']: o.text[:-6].upper() for o in options
                  if len(o.attrib['value']) == 3}
 
+        return codes
+
     @classmethod
     def fmt_date(self, std_date):
         return (datetime.strptime(std_date, std_date_fmt)
