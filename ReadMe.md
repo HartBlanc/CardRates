@@ -37,6 +37,8 @@ Then create a .env file at the root of CardRates with your [Database URL](https:
 $ echo DB_URL=dialect[+driver]://user:password@host/dbname > .env
 ```
 
+Note: You may need to install a DB API library to connect to your database. Check the SQLAlchemy docs for supported APIs.
+
 ### Installing Packages
 ```shell
 $ pipenv sync  # include --dev flag for development packages
