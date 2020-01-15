@@ -23,8 +23,7 @@ class MCSpider(scrapy.Spider):
     url = 'https://www.mastercard.co.uk/'
     curr_url = url + 'settlement/currencyrate/settlement-currencies'
     support_url = url + 'en-gb/consumers/get-support/convert-currency.html'
-    rate_url = url + "settlement/currencyrate/{}/conversion-rate"
-
+    rate_url = url + 'settlement/currencyrate/{}/conversion-rate'
     date_fmt = '%Y-%m-%d'
 
     # err_msgs to be identified.
@@ -34,9 +33,9 @@ class MCSpider(scrapy.Spider):
     rate_params = {'fxDate': None, 'transCurr': None, 'crdhldBillCurr': None,
                    'bankFee': '0.0', 'transAmt': '1'}
 
-    def __init__(self, data=None, inpath=None, *args, **kwargs):
+    def __init__(self, data=None, in_path=None, *args, **kwargs):
         super(MCSpider, self).__init__(*args, **kwargs)
-        self.data = csv.reader(Path(inpath).open())
+        self.data = csv.reader(Path(in_path).open())
 
     # a generator function for initial requests
     # (formatted urls from currency alphaCds and dates)
@@ -59,13 +58,13 @@ class MCSpider(scrapy.Spider):
     def parse(self, response):
         item = response.meta['item']
 
-        jresponse = json.loads(response.body_as_unicode())
-        if 'errorCode' in jresponse['data']:
-            errcd = jresponse['data']['errorCode']
-            print(f'Dropping Item: {item}, Error msg: {self.err_msgs[errcd]}')
+        j_response = json.loads(response.body_as_unicode())
+        if 'errorCode' in j_response['data']:
+            err_cd = j_response['data']['errorCode']
+            print(f'Dropping Item: {item}, Error msg: {self.err_msgs[err_cd]}')
 
         else:
-            item['rate'] = jresponse['data']['conversionRate']
+            item['rate'] = j_response['data']['conversionRate']
 
         wanted = {'card_c': None, 'trans_c': None, 'date': None, 'rate': None}
         unwanted_keys = set(item.keys()) - set(wanted.keys())
@@ -73,19 +72,19 @@ class MCSpider(scrapy.Spider):
             item.pop(unwanted_key, None)
 
     @classmethod
-    def fetch_avail_currs(self):
-        r = requests.get(self.curr_url, headers={"referer": self.support_url})
+    def fetch_avail_currs(cls):
+        r = requests.get(cls.curr_url, headers={"referer": cls.support_url})
 
         assert r.ok, "Request failed - ip may be blocked"
 
         codes = {x['alphaCd']: x['currNam'].strip()
                  for x in r.json()['data']['currencies']}
 
-        assert len(codes) != 0, 'No currencies found, check url and selector'
+        assert len(codes) != 0, "No currencies found, check url and selector"
 
         return codes
 
     @classmethod
-    def fmt_date(self, std_date):
+    def fmt_date(cls, std_date):
         return (datetime.strptime(std_date, std_date_fmt)
-                        .strftime(self.date_fmt))
+                .strftime(cls.date_fmt))

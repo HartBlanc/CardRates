@@ -65,20 +65,20 @@ class VisaSpider(scrapy.Spider):
             item.pop(unwanted_key, None)
 
     @classmethod
-    def fetch_avail_currs(self):
-        page = requests.get(self.url)
-        r = requests.get(self.url)
+    def fetch_avail_currs(cls):
+        page = requests.get(cls.url)
+        r = requests.get(cls.url)
         tree = html.fromstring(page.content)
         assert r.ok, "Request failed - ip may be blocked"
         tree = html.fromstring(r.content)
 
-        options = tree.xpath(self.curr_xpath)
+        options = tree.xpath(cls.curr_xpath)
         codes = {o.attrib['value']: o.text[:-6].upper() for o in options
                  if len(o.attrib['value']) == 3}
 
         return codes
 
     @classmethod
-    def fmt_date(self, std_date):
+    def fmt_date(cls, std_date):
         return (datetime.strptime(std_date, std_date_fmt)
-                        .strftime(self.date_fmt))
+                        .strftime(cls.date_fmt))
