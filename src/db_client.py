@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from os import environ
+from scrapy import spiderloader
 from scrapy.utils.project import get_project_settings as settings
 
 from db_orm import CurrencyCode, Rate, Provider, Base
@@ -13,8 +15,6 @@ from sqlalchemy_utils.functions import create_database, drop_database
 
 from contextlib import contextmanager
 from itertools import product
-
-from scrapy import spiderloader
 
 from pytz import timezone
 import datetime
@@ -31,10 +31,10 @@ def strpdate(date, fmt=std_date_fmt):
 
 class DbClient:
 
-    def __init__(self, conn_string=settings().get("CONNECTION_STRING"), new=False, echo=False):
+    def __init__(self, db_url=environ.get("DB_URL"), new=False,
+                 echo=False):
 
-        self.engine = create_engine(conn_string,
-                                    echo=echo)
+        self.engine = create_engine(db_url, echo=echo)
         self.Session = sessionmaker(bind=self.engine)
         self.metadata = MetaData(bind=self.engine)
 
@@ -174,8 +174,6 @@ class DbClient:
 
 
 if __name__ == '__main__':
-    # dbc = DbClient()
-    # # dbc.rates_from_csv('Visa', 'output')
-    # dbc.create_tables()
-    # dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')
-    print(strpdate("10/09/1995"))
+    dbc = DbClient()
+    dbc.create_tables()
+    dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')

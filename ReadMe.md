@@ -30,16 +30,16 @@ $ scrapy crawl VisaSpider -a inpath=input/0.csv
 ## Getting Started
 
 ### Database Config
-first update CardRatesUpdater/settings.py with your database details.
-And create a .env file at the root of CardRates with your database password if neccessary
+First choose a SQL variant to store the rates in (any SQLAlchemy compatible DB will do).
+Then create a .env file at the root of CardRates with your [Database URL](https://docs.sqlalchemy.org/en/13/core/engines.html).
 
 ```shell
-$ echo MYSQL_PW=YOUR_PASSWORD >.env
+$ echo DB_URL=dialect[+driver]://user:password@host/dbname > .env
 ```
 
 ### Installing Packages
 ```shell
-$ pipenv install  # include --dev flag for development packages
+$ pipenv sync  # include --dev flag for development packages
 $ pipenv shell
 ```
 
@@ -53,4 +53,4 @@ $ scrapy crawl VisaSpider -a inpath=input/0.csv
 ```
 
 ## Contact
-callumjameshart@gmail.com
+[callumjameshart@gmail.com](mailto:callumjameshart@gmail.com)

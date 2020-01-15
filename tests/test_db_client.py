@@ -14,19 +14,18 @@ TEST_DATE = date(day=10, month=9, year=1995)
 
 @pytest.fixture()
 def db_client():
+    # set up
     from src.db_client import DbClient
-    from src.db_orm import Base
-    conn_string = "{drivername}://{user}:{passwd}@{host}:{port}/{db_name}?charset=utf8".format(
-        drivername="mysql",
-        user="root",
-        passwd=environ['MYSQL_PW'],
-        host="localhost",
-        port="3306",
-        db_name="TestCardRates",
-    )
+    db_url = environ.get("DB_URL")
+    name_start = db_url.rfind('/') + 1
+    db_url = f"{db_url[:name_start]}Test"
 
-    client = DbClient(conn_string=conn_string, new=True)
+    client = DbClient(db_url=db_url, new=True)
+
+    # run test
     yield client
+
+    # tear down
     with client.session_scope() as s:
         client.drop_database()
     del client
