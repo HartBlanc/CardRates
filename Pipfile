@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 pycodestyle = "*"
+pytest = "*"
 
 [packages]
 requests = "*"
@@ -15,6 +16,7 @@ scrapyd = "*"
 scrapyd-client = "*"
 sqlalchemy = "*"
 mysqlclient = "*"
+sqlalchemy-utils = "*"
 
 [requires]
 python_version = "3.7"

@@ -1,10 +1,9 @@
 *.pyc
-*.db
 *.env
-/build
-/eggs
-/input
-/logs
-/output
-/project.egg-info
-/twistd.pid
+src/build
+src/eggs
+src/input
+src/logs
+src/output
+src/project.egg-info
+src/twistd.pid

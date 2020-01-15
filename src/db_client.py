@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
+
+from os import environ
+from scrapy import spiderloader
 from scrapy.utils.project import get_project_settings as settings
 
 from db_orm import CurrencyCode, Rate, Provider, Base
 
-from sqlalchemy.orm import sessionmaker, aliased
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import MetaData
 from sqlalchemy import create_engine
 
+from sqlalchemy_utils.functions import create_database, drop_database
+
 from contextlib import contextmanager
 from itertools import product
-
-from scrapy.utils import project
-from scrapy import spiderloader
 
 from pytz import timezone
 import datetime
 
 from pathlib import Path
 import csv
-
 
 std_date_fmt = settings().get('STD_DATE_FMT')
 
@@ -30,17 +31,22 @@ def strpdate(date, fmt=std_date_fmt):
 
 class DbClient:
 
-    def __init__(self, echo=False):
+    def __init__(self, db_url=environ.get("DB_URL"), new=False,
+                 echo=False):
 
-        self.engine = create_engine(settings().get("CONNECTION_STRING"),
-                                    echo=echo)
+        self.engine = create_engine(db_url, echo=echo)
         self.Session = sessionmaker(bind=self.engine)
         self.metadata = MetaData(bind=self.engine)
-        self.metadata.reflect()
 
         spider_loader = spiderloader.SpiderLoader.from_settings(settings())
         s_names = spider_loader.list()
         self.spiders = tuple(spider_loader.load(name) for name in s_names)
+
+        if new:
+            create_database(self.engine.url)
+            self.create_tables(Base)
+        else:
+            self.metadata.reflect()
 
     @staticmethod
     def current_date():
@@ -69,13 +75,14 @@ class DbClient:
         finally:
             session.close()
 
-    def create_tables(self, base, providers):
+    def create_tables(self, base):
         base.metadata.create_all(self.engine)
 
         with self.session_scope() as s:
-            for p in providers:
-                s.add(p)
-                self.update_currencies(provider)
+            providers = [s.provider for s in self.spiders]
+            for pid, p_name in enumerate(providers):
+                s.add(Provider(id=pid + 1, name=p_name))
+                self.update_currencies(p_name)
 
     def missing(self, provider):
         with self.session_scope(commit=False) as s:
@@ -87,7 +94,7 @@ class DbClient:
 
             end = self.current_date()
 
-            # paramaterise star/end
+            # paramaterise start/end
             start = end - datetime.timedelta(days=363)
 
             avail_dates = (end - datetime.timedelta(days=x)
@@ -103,13 +110,13 @@ class DbClient:
 
         return (x for x in all_combos if x not in not_missing)
 
-    # multiprocessing to be implemented
+    # todo multiprocessing to be implemented
     @staticmethod
     def combos_to_csv(file_count, results, out_path):
 
         out_path = Path(out_path)
 
-        # try/except if file exists
+        # todo try/except if file exists
         out_path.mkdir()
 
         paths = tuple(out_path / f'{i}.csv' for i in range(file_count))
@@ -127,7 +134,7 @@ class DbClient:
             for f in fs:
                 f.close()
 
-    def rates_from_csv(self, provider, inpath):
+    def rates_from_csv(self, provider, in_path):
 
         with self.session_scope() as s:
 
@@ -135,7 +142,7 @@ class DbClient:
                             .filter(Provider.name == provider)
                             .first()[0])
 
-            for file in Path(inpath).glob('*.csv'):
+            for file in Path(in_path).glob('*.csv'):
                 print(file)
                 with file.open() as f:
                     data = csv.reader(f)
@@ -150,10 +157,11 @@ class DbClient:
                     s.commit()
 
     def update_currencies(self, provider):
+        spider = next(s for s in self.spiders if s.provider == provider)
         with self.session_scope() as s:
-            for alpha_code, name in provider.avail_currs.items():
+            for alpha_code, name in spider.fetch_avail_currs().items():
                 try:
-                    s.add(CurrencyCode(name=name, alpha_code=alpha_code))
+                    s.add(CurrencyCode(alpha_code=alpha_code, name=name))
                     s.commit()
                 except IntegrityError:
                     s.rollback()
@@ -161,9 +169,11 @@ class DbClient:
     def drop_all_tables(self):
         self.metadata.drop_all()
 
+    def drop_database(self):
+        drop_database(self.engine.url)
+
 
 if __name__ == '__main__':
     dbc = DbClient()
-    # dbc.rates_from_csv('Visa', 'output')
     dbc.create_tables()
     dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')
