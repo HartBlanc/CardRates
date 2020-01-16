@@ -20,16 +20,10 @@ Tests are currently in development, spiders are functioning as expected in the d
 - Limited database client api
 
 
-## Code Example
-```shell 
-$ scrapy crawl MCSpider -a inpath=input/0.csv
-```
-```shell
-$ scrapy crawl VisaSpider -a inpath=input/0.csv
-```
+
 ## Getting Started
 
-### Database Config
+### Database Config 📝
 First choose a SQL variant to store the rates in (any SQLAlchemy compatible DB will do).
 Then create a .env file at the root of CardRates with your [Database URL](https://docs.sqlalchemy.org/en/13/core/engines.html).
 
@@ -39,17 +33,22 @@ $ echo DB_URL=dialect[+driver]://user:password@host/dbname > .env
 
 Note: You may need to install a DB API library to connect to your database. Check the SQLAlchemy docs for supported APIs.
 
-### Installing Packages
+### Installing Packages 🐍
 ```shell
 $ pipenv sync  # include --dev flag for development packages
 $ pipenv shell
 ```
 
-### Create Tables and Generate csv
+### Create Tables and Generate csv 📝
 ```shell
 $ python db_client.py 
 ```
-### Run Spider
+
+## Code Example
+### Run Spiders 🕷
+```shell 
+$ scrapy crawl MCSpider -a inpath=input/0.csv
+```
 ```shell
 $ scrapy crawl VisaSpider -a inpath=input/0.csv
 ```
