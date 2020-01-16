@@ -1,9 +1,9 @@
 *.pyc
 *.env
-src/build
-src/eggs
-src/input
-src/logs
-src/output
-src/project.egg-info
-src/twistd.pid
+cardRatesUpdater/build
+cardRatesUpdater/eggs
+cardRatesUpdater/input
+cardRatesUpdater/logs
+cardRatesUpdater/output
+cardRatesUpdater/project.egg-info
+cardRatesUpdater/twistd.pid

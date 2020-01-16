@@ -41,12 +41,12 @@ $ pipenv shell
 
 ### Create Tables and Generate csv 📝
 ```shell
-$ python db_client.py 
+$ python db_client.py --new 
 ```
 
 ## Code Example
 ### Run Spiders 🕷
-In the root directory:
+In the cardRatesUpdate directory run:
 ```shell 
 $ scrapy crawl MCSpider -a src/in_path=input/0.csv
 ```

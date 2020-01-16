@@ -9,13 +9,16 @@ import pytest
 # Hacky solution to import errors...
 sys.path[0] = str(Path(sys.path[0]) / "cardRatesUpdater")
 
+# Hacky solution to find the scrapy settings module
+environ['SCRAPY_SETTINGS_MODULE'] = "settings"
+
 TEST_DATE = date(day=10, month=9, year=1995)
 
 
 @pytest.fixture()
 def db_client():
     # set up
-    from db.client import DbClient
+    from db_client import DbClient
     db_url = environ.get("DB_URL")
     name_start = db_url.rfind('/') + 1
     db_url = f"{db_url[:name_start]}Test"
@@ -32,13 +35,13 @@ def db_client():
 
 
 def test_strpdate():
-    from db.client import strpdate
+    from db_client import strpdate
     assert strpdate("10/09/1995") == TEST_DATE
     assert strpdate("09/10/1995", "%m/%d/%Y") == TEST_DATE
 
 
 def test_current_date():
-    from db.client import DbClient
+    from db_client import DbClient
     assert DbClient.current_date() is not None
 
 
@@ -46,7 +49,7 @@ def test_create_tables(db_client):
     tables = db_client.engine.table_names()
     assert set(tables) == {"providers", "currency_codes", "rates"}
 
-    from db.orm import Provider, CurrencyCode
+    from db_orm import Provider, CurrencyCode
     with db_client.session_scope(commit=False) as s:
         assert set(s.query(Provider.name)) == {(spider.provider,) for spider in db_client.spiders}
 

@@ -2,7 +2,7 @@ FROM python:3
 
 ADD CardRatesUpdater /CardRatesUpdater
 ADD .scrapy.conf /
-ADD scrapy.cfg /
+ADD cardRatesUpdater/scrapy.cfg /
 ADD Pipfile /
 ADD Pipfile.lock /
 ADD 0.csv /input/0.csv
