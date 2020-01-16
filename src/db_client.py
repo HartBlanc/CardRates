@@ -35,7 +35,7 @@ class DbClient:
                  echo=False):
 
         self.engine = create_engine(db_url, echo=echo)
-        self.Session = sessionmaker(bind=self.engine)
+        self.session_maker = sessionmaker(bind=self.engine)
         self.metadata = MetaData(bind=self.engine)
 
         spider_loader = spiderloader.SpiderLoader.from_settings(settings())
@@ -64,7 +64,7 @@ class DbClient:
     def session_scope(self, commit=True):
         """Provide a transactional scope around a series of operations."""
 
-        session = self.Session()
+        session = self.session_maker()
         try:
             yield session
             if commit:
@@ -175,5 +175,4 @@ class DbClient:
 
 if __name__ == '__main__':
     dbc = DbClient()
-    dbc.create_tables()
     dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')

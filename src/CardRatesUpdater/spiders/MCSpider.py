@@ -35,25 +35,26 @@ class MCSpider(scrapy.Spider):
 
     def __init__(self, data=None, in_path=None, *args, **kwargs):
         super(MCSpider, self).__init__(*args, **kwargs)
-        self.data = csv.reader(Path(in_path).open())
+        self.in_path = Path(in_path)
 
     # a generator function for initial requests
     # (formatted urls from currency alphaCds and dates)
     def start_requests(self):
-        for card_c, trans_c, date in self.data:
-            item = UpdaterItem(card_c, trans_c, date)
+        with self.in_path.open() as data:
+            for card_c, trans_c, date in csv.reader(data):
+                item = UpdaterItem(card_c, trans_c, date)
 
-            params = dict(self.rate_params)
-            params['crdhldBillCurr'] = card_c
-            params['transCurr'] = trans_c
-            params['fxDate'] = self.fmt_date(date)
+                params = dict(self.rate_params)
+                params['crdhldBillCurr'] = card_c
+                params['transCurr'] = trans_c
+                params['fxDate'] = self.fmt_date(date)
 
-            param_string = ''.join(f'{k}={v};' for k, v in params.items())[:-1]
+                param_string = ''.join(f'{k}={v};' for k, v in params.items())[:-1]
 
-            yield (scrapy.Request(
-                url=self.rate_url.format(param_string),
-                headers={'referer': self.support_url},
-                meta=dict(item=item)))
+                yield (scrapy.Request(
+                    url=self.rate_url.format(param_string),
+                    headers={'referer': self.support_url},
+                    meta=dict(item=item)))
 
     def parse(self, response):
         item = response.meta['item']

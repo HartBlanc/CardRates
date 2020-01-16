@@ -46,11 +46,12 @@ $ python db_client.py
 
 ## Code Example
 ### Run Spiders 🕷
+In the root directory:
 ```shell 
-$ scrapy crawl MCSpider -a inpath=input/0.csv
+$ scrapy crawl MCSpider -a src/in_path=input/0.csv
 ```
 ```shell
-$ scrapy crawl VisaSpider -a inpath=input/0.csv
+$ scrapy crawl VisaSpider -a src/in_path=input/0.csv
 ```
 
 ## Contact
