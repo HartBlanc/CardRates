@@ -1,9 +1,10 @@
 *.pyc
 *.env
-cardRatesUpdater/build
-cardRatesUpdater/eggs
-cardRatesUpdater/input
-cardRatesUpdater/logs
-cardRatesUpdater/output
-cardRatesUpdater/project.egg-info
-cardRatesUpdater/twistd.pid
+src/build
+src/eggs
+src/VisaInput
+src/MastercardInput
+src/logs
+src/output
+src/project.egg-info
+src/twistd.pid

@@ -20,8 +20,8 @@ import datetime
 from pathlib import Path
 import csv
 
-if __name__ != "__main__":
-    from db_orm import CurrencyCode, Rate, Provider, Base
+
+from .orm import CurrencyCode, Rate, Provider, Base
 
 std_date_fmt = settings().get('STD_DATE_FMT')
 
@@ -181,15 +181,3 @@ class DbClient:
 
     def drop_database(self):
         drop_database(self.engine.url)
-
-
-if __name__ == '__main__':
-    from db_orm import CurrencyCode, Rate, Provider, Base
-    from sys import argv
-    if len(argv) > 1 and argv[1].lower().strip() == "--new":
-        dbc = DbClient(new=True)
-        dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')
-
-    else:
-        dbc = DbClient()
-        dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')

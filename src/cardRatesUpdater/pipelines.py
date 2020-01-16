@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
 
-from db_orm import Rate, Provider
-from db_client import DbClient, strpdate
+from db.orm import Rate, Provider
+from db.client import DbClient, strpdate
 
 
 class CardRatesUpdaterPipeline(object):

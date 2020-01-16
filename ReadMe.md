@@ -41,19 +41,19 @@ $ pipenv shell
 ```
 
 ### Create Tables and Generate csv 📝
-In the cardRatesUpdater directory run:
+In the src directory run:
 ```shell
-$ python db_client.py --new # (new flag is for creating a new database)
+$ python createCSV.py --new # (new flag is for creating a new database)
 ```
 
 ## Code Example
 ### Run Spiders 🕷
-In the cardRatesUpdater directory run:
+In the src directory run:
 ```shell 
-$ scrapy crawl MCSpider -a in_path=input/0.csv
+$ scrapy crawl MCSpider -a in_path=MastercardInput/0.csv
 ```
 ```shell
-$ scrapy crawl VisaSpider -a in_path=input/0.csv
+$ scrapy crawl VisaSpider -a in_path=VisaInput/0.csv
 ```
 
 ## Contact
