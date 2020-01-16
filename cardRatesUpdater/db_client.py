@@ -5,10 +5,6 @@ from os import environ
 from scrapy import spiderloader
 from scrapy.utils.project import get_project_settings as settings
 
-if __name__ != "__main__":
-    from db_orm import CurrencyCode, Rate, Provider, Base
-
-
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import MetaData
@@ -24,9 +20,12 @@ import datetime
 
 from pathlib import Path
 import csv
-print("hello", environ.get('SCRAPY_PROJECT', 'default'))
-# print(environ['SCRAPY_SETTINGS_MODULE'])
+
+if __name__ != "__main__":
+    from db_orm import CurrencyCode, Rate, Provider, Base
+
 std_date_fmt = settings().get('STD_DATE_FMT')
+
 
 def strpdate(date, fmt=std_date_fmt):
     return datetime.datetime.strptime(date, fmt).date()
@@ -51,10 +50,6 @@ class DbClient:
             self.create_tables(Base)
         else:
             self.metadata.reflect()
-
-
-
-
 
     @staticmethod
     def current_date():
@@ -195,4 +190,3 @@ if __name__ == '__main__':
     else:
         dbc = DbClient()
         dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')
-
