@@ -34,24 +34,26 @@ $ echo DB_URL=dialect[+driver]://user:password@host/dbname > .env
 Note: You may need to install a DB API library to connect to your database. Check the SQLAlchemy docs for supported APIs.
 
 ### Installing Packages 🐍
+In the root directory run:
 ```shell
 $ pipenv sync  # include --dev flag for development packages
 $ pipenv shell
 ```
 
 ### Create Tables and Generate csv 📝
+In the cardRatesUpdater directory run:
 ```shell
-$ python db_client.py --new 
+$ python db_client.py --new # (new flag is for creating a new database)
 ```
 
 ## Code Example
 ### Run Spiders 🕷
-In the cardRatesUpdate directory run:
+In the cardRatesUpdater directory run:
 ```shell 
-$ scrapy crawl MCSpider -a src/in_path=input/0.csv
+$ scrapy crawl MCSpider -a in_path=input/0.csv
 ```
 ```shell
-$ scrapy crawl VisaSpider -a src/in_path=input/0.csv
+$ scrapy crawl VisaSpider -a in_path=input/0.csv
 ```
 
 ## Contact
