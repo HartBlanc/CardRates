@@ -25,7 +25,7 @@ class MCSpider(scrapy.Spider):
     support_url = url + 'en-gb/consumers/get-support/convert-currency.html'
     rate_url = url + 'settlement/currencyrate/{}/conversion-rate'
     date_fmt = '%Y-%m-%d'
-    # todo should this add null to database?
+    # todo should 114 add null to database?
     # err_msgs to be identified.
     # err_msgs = {'101': None,
     #             '104': None,
