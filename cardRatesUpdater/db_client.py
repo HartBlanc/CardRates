@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 from os import environ
 from scrapy import spiderloader
 from scrapy.utils.project import get_project_settings as settings
@@ -87,30 +86,36 @@ class DbClient:
                 s.add(Provider(id=pid + 1, name=p_name))
                 self.update_currencies(p_name)
 
-    def missing(self, provider):
+    # todo differentiate between card currencies and transaction currencies
+    def missing(self, provider, end=None, num_days=363, currs=None):
         with self.session_scope(commit=False) as s:
+
+            if not end:
+                end = self.current_date()
+
+            start = end - datetime.timedelta(days=num_days - 1)
 
             spider = next(spider for spider in self.spiders
                           if spider.provider == provider)
 
-            avail_currs = set(spider.fetch_avail_currs().keys())
-
-            end = self.current_date()
-
-            # paramaterise start/end
-            start = end - datetime.timedelta(days=363)
+            if not currs:
+                currs = set(spider.fetch_avail_currs().keys())
 
             avail_dates = (end - datetime.timedelta(days=x)
-                           for x in range(363))
+                           for x in range(num_days))
 
             all_combos = ((x, y, z) for x, y, z
-                          in product(avail_currs, avail_currs, avail_dates)
+                          in product(currs, currs, avail_dates)
                           if x != y)
 
-            # noinspection PyUnresolvedReferences
             not_missing = set(s.query(Rate.card_code, Rate.trans_code,
                                       Rate.date)
-                               .filter(Rate.provider.has(name=provider)))
+                               .filter(Rate.provider.has(name=provider))
+                               .filter(Rate.date <= end)
+                               .filter(Rate.date >= start)
+                               .filter(Rate.card_code.in_(currs))
+                               .filter(Rate.trans_code.in_(currs))
+                              )
 
         return (x for x in all_combos if x not in not_missing)
 
@@ -137,7 +142,6 @@ class DbClient:
                 fs[i % file_count].write(f'{card_c},{trans_c},{std_date}\n')
 
         finally:
-            # noinspection PyUnboundLocalVariable
             for f in fs:
                 f.close()
 
@@ -145,8 +149,7 @@ class DbClient:
 
         with self.session_scope() as s:
 
-            provider_id = (s.query(Provider.id)
-                            .filter(Provider.name == provider)
+            provider_id = (s.query(Provider.id).filter_by(name=provider)
                             .first()[0])
 
             for file in Path(in_path).glob('*.csv'):
