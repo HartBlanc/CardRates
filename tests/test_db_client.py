@@ -3,15 +3,11 @@ from datetime import date, timedelta
 import sys
 from pathlib import Path
 from os import environ
-from time import sleep
 
 import pytest
 
 # Hacky solution to import errors...
 sys.path[0] = str(Path(sys.path[0]) / "src")
-
-# Hacky solution to find the scrapy settings module
-environ['SCRAPY_SETTINGS_MODULE'] = "cardRatesUpdater.settings"
 
 TEST_DATE = date(day=10, month=9, year=1995)
 
@@ -70,6 +66,7 @@ def test_current_date():
 def test_create_tables(client):
     tables = client.engine.table_names()
     assert set(tables) == {"providers", "currency_codes", "rates"}
+    assert len(client.spiders) != 0
 
     from db.orm import Provider, CurrencyCode
     with client.session_scope(commit=False) as s:

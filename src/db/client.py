@@ -23,6 +23,8 @@ import csv
 
 from .orm import CurrencyCode, Rate, Provider, Base
 
+
+environ['SCRAPY_SETTINGS_MODULE'] = "cardRatesUpdater.settings"
 std_date_fmt = settings().get('STD_DATE_FMT')
 
 
@@ -108,6 +110,7 @@ class DbClient:
                           in product(currs, currs, avail_dates)
                           if x != y)
 
+            # noinspection PyUnresolvedReferences
             not_missing = set(s.query(Rate.card_code, Rate.trans_code,
                                       Rate.date)
                                .filter(Rate.provider.has(name=provider))
@@ -135,6 +138,7 @@ class DbClient:
         for p in paths:
             p.touch()
 
+        fs = []
         try:
             fs = tuple(p.open(mode='w') for p in paths)
             for i, (card_c, trans_c, date) in enumerate(results):

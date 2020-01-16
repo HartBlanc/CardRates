@@ -33,7 +33,7 @@ class VisaSpider(scrapy.Spider):
                    'fromCurr': None, 'toCurr': None,
                    'submitButton': 'Calculate exchange rate'}
 
-    def __init__(self, data=None, in_path=None, *args, **kwargs):
+    def __init__(self, in_path=None, *args, **kwargs):
         super(VisaSpider, self).__init__(*args, **kwargs)
         self.in_path = Path(in_path)
 
@@ -46,6 +46,7 @@ class VisaSpider(scrapy.Spider):
                 params['date'] = self.fmt_date(date)
                 params['fromCurr'] = card_c
                 params['toCurr'] = trans_c
+                # noinspection PyUnresolvedReferences
                 url = f'{self.url}?{urllib.parse.urlencode(params)}'
 
                 yield scrapy.Request(url=url, meta=dict(item=item))
@@ -69,9 +70,7 @@ class VisaSpider(scrapy.Spider):
 
     @classmethod
     def fetch_avail_currs(cls):
-        page = requests.get(cls.url)
         r = requests.get(cls.url)
-        tree = html.fromstring(page.content)
         assert r.ok, "Request failed - ip may be blocked"
         tree = html.fromstring(r.content)
 

@@ -5,6 +5,7 @@ from db.orm import Rate, Provider
 from db.client import DbClient, strpdate
 
 
+# noinspection PyUnusedLocal
 class CardRatesUpdaterPipeline(object):
 
     def __init__(self):
@@ -23,6 +24,7 @@ class CardRatesUpdaterPipeline(object):
     @classmethod
     def from_crawler(cls, crawler):
         temp = cls()
+        # noinspection PyUnresolvedReferences
         crawler.signals.connect(
             temp.spider_closed, signal=scrapy.signals.spider_closed)
         return temp

@@ -25,21 +25,20 @@ class MCSpider(scrapy.Spider):
     support_url = url + 'en-gb/consumers/get-support/convert-currency.html'
     rate_url = url + 'settlement/currencyrate/{}/conversion-rate'
     date_fmt = '%Y-%m-%d'
-
+    # todo should this add null to database?
     # err_msgs to be identified.
     # err_msgs = {'101': None,
     #             '104': None,
-    #             '114': "Not Found , Conversion rate is not available for this currency pair.", todo should this add null to databse?
+    #             '114': "Not Found , Conversion rate is not available for this currency pair."
     #             '400': None,
     #             '401': None,
     #             '500': None,
     #             }
 
-
     rate_params = {'fxDate': None, 'transCurr': None, 'crdhldBillCurr': None,
                    'bankFee': '0.0', 'transAmt': '1'}
 
-    def __init__(self, data=None, in_path=None, *args, **kwargs):
+    def __init__(self, in_path=None, *args, **kwargs):
         super(MCSpider, self).__init__(*args, **kwargs)
         self.in_path = Path(in_path)
 
@@ -67,7 +66,7 @@ class MCSpider(scrapy.Spider):
 
         j_response = json.loads(response.body_as_unicode())
         if 'errorCode' in j_response['data']:
-            err_cd = j_response['data']['errorCode']
+            # err_cd = j_response['data']['errorCode']
             print(f"Dropping Item: {item}, Error msg: \"{j_response['data'].get('errorMessage')}\"")
             return
         else:

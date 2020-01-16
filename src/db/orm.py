@@ -49,7 +49,7 @@ class Rate(Base):
 
     provider = relationship('Provider')
     card_curr = relationship('CurrencyCode', foreign_keys=[card_code])
-    card_curr = relationship('CurrencyCode', foreign_keys=[trans_code])
+    trans_curr = relationship('CurrencyCode', foreign_keys=[trans_code])
 
     def __repr__(self):
         return (f"<Rate({self.date} {self.provider.name}: "
