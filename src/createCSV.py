@@ -8,7 +8,6 @@ if __name__ == "__main__":
     else:
         dbc = DbClient()
 
-    print(len(dbc.spiders))
     for spider in dbc.spiders:
         p = spider.provider
         dbc.combos_to_csv(1, dbc.missing(p), f'{p}Input')

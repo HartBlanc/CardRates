@@ -63,10 +63,10 @@ class MCSpider(scrapy.Spider):
 
                 param_string = ''.join(f'{k}={v};' for k, v in params.items())[:-1]
 
-                yield (scrapy.Request(
+                yield scrapy.Request(
                     url=self.rate_url.format(param_string),
                     headers={'referer': self.support_url},
-                    meta=dict(item=item)))
+                    meta=dict(item=item))
 
     def parse(self, response):
         item = response.meta['item']
