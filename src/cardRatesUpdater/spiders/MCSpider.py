@@ -28,10 +28,17 @@ class MCSpider(scrapy.Spider):
     # todo should 114 add null to database?
     # err_msgs to be identified.
     # err_msgs = {'101': None,
-    #             '104': None,
+    #             '104':" Conversion rates are not available or issued for the selected date."
     #             '114': "Not Found , Conversion rate is not available for this currency pair."
-    #             '400': None,
-    #             '401': None,
+    #             '124': "Conversion rate value is less than 0.000001"
+    #             '400': ("Request with an invalid client Id",
+    #                     "Incorrect request parameters",
+    #                     "User does not have access to retrieve conversion rates for the requested date",
+    #                     )
+    #
+    #             '401': ("User requests to retrieve conversion rate for a future date."
+    #                     "The API only retrieves conversion rates for the current date"
+    #                     )
     #             '500': None,
     #             }
 
