@@ -2,8 +2,7 @@
 *.env
 src/build
 src/eggs
-src/VisaInput
-src/MastercardInput
+*Input/
 src/logs
 src/output
 src/project.egg-info
