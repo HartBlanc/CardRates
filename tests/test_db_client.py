@@ -36,8 +36,10 @@ def client():
     # set up
     from db.client import DbClient
     db_url = environ.get("DB_URL")
-    name_start = db_url.rfind('/') + 1
-    db_url = f"{db_url[:name_start]}Test"
+
+    if "Test" not in db_url:
+        name_start = db_url.rfind('/') + 1
+        db_url = f"{db_url[:name_start]}Test"
 
     dbc = DbClient(db_url=db_url, new=True)
     # cannot have a session in the setup.

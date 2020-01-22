@@ -1,5 +1,8 @@
 language: python
 
+services:
+  - mysql
+
 install:
 - pip install pipenv
 - pipenv sync --dev
