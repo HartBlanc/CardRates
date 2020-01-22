@@ -34,7 +34,7 @@ class Rate(Base):
                                        'date', 'provider_id'),)
 
     # No need for rate id, PK should be codes, provider_id, date
-    # (as in unique constraint above)
+    # (as in unique constraint above).
     id = Column(Integer, primary_key=True)
 
     card_code = Column(String(3), ForeignKey('currency_codes.alpha_code'),
