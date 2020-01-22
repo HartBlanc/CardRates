@@ -2,7 +2,7 @@
 *.env
 src/build
 src/eggs
-src/input
+*Input/
 src/logs
 src/output
 src/project.egg-info

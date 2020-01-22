@@ -12,8 +12,8 @@
 
 BOT_NAME = 'CardRatesUpdater'
 
-SPIDER_MODULES = ['CardRatesUpdater.spiders']
-NEWSPIDER_MODULE = 'CardRatesUpdater.spiders'
+SPIDER_MODULES = ['cardRatesUpdater.spiders']
+NEWSPIDER_MODULE = 'cardRatesUpdater.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'CardRatesUpdater (+http://www.yourdomain.com)'
@@ -69,7 +69,7 @@ CONCURRENT_ITEMS = 50
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'CardRatesUpdater.pipelines.CardRatesUpdaterPipeline': 300,
+   'cardRatesUpdater.pipelines.CardRatesUpdaterPipeline': 300,
 }
 # DUPEFILTER_DEBUG = "True"
 LOG_LEVEL = "INFO"

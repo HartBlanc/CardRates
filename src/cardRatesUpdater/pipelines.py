@@ -1,36 +1,30 @@
 # -*- coding: utf-8 -*-
-from scrapy.utils.project import get_project_settings as settings
-from ..db_client import strpdate
 import scrapy
 
-from db_orm import Rate, Provider, CurrencyCode
-
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-
-from datetime import datetime
-
-std_date_fmt = settings().get('STD_DATE_FMT')
+from db.orm import Rate, Provider
+from db.client import DbClient, strpdate
 
 
+# noinspection PyUnusedLocal
 class CardRatesUpdaterPipeline(object):
 
     def __init__(self):
-        self.setupDBCon()
+        self.provider_id = None
+        self.client = DbClient()
+        self.session = self.client.session_maker()
         self.commit_count = 0
 
     def open_spider(self, spider):
         provider = spider.provider
-        self.provider_id = (self.session.query(Provider.id)
-                                        .filter(Provider.name == provider))
-
-    def strpdate(self, std_date):
-        return datetime.strptime(std_date, std_date_fmt).date()
+        self.provider_id = (self.session
+                                .query(Provider.id)
+                                .filter(Provider.name == provider))
 
     # methods to ensure database saves when spider closes
     @classmethod
     def from_crawler(cls, crawler):
         temp = cls()
+        # noinspection PyUnresolvedReferences
         crawler.signals.connect(
             temp.spider_closed, signal=scrapy.signals.spider_closed)
         return temp
@@ -44,16 +38,7 @@ class CardRatesUpdaterPipeline(object):
             self.session.rollback()
             raise
 
-    def setup_db_con(self):
-        engine = create_engine(settings().get("CONNECTION_STRING"))
-        session = sessionmaker(bind=engine)
-        self.session = session()
-
     def process_item(self, item, spider):
-        self.store_in_db(item)
-        return item
-
-    def store_in_db(self, item):
         self.session.add(Rate(card_code=item['card_c'],
                               trans_code=item['trans_c'],
                               date=strpdate(item['date']),
@@ -62,9 +47,15 @@ class CardRatesUpdaterPipeline(object):
 
         # Limit writing to disk to every 100 rows
         if self.commit_count == 99:
-            self.session.commit()
+            try:
+                self.session.commit()
+            except Exception:
+                self.session.rollback()
+                raise
 
         self.commit_count = (self.commit_count + 1) % 100
+
+        return item
 
     def __del__(self):
         self.session.close()

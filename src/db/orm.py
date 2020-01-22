@@ -33,6 +33,8 @@ class Rate(Base):
     __table_args__ = (UniqueConstraint('card_code', 'trans_code',
                                        'date', 'provider_id'),)
 
+    # No need for rate id, PK should be codes, provider_id, date
+    # (as in unique constraint above).
     id = Column(Integer, primary_key=True)
 
     card_code = Column(String(3), ForeignKey('currency_codes.alpha_code'),
@@ -49,7 +51,7 @@ class Rate(Base):
 
     provider = relationship('Provider')
     card_curr = relationship('CurrencyCode', foreign_keys=[card_code])
-    card_curr = relationship('CurrencyCode', foreign_keys=[trans_code])
+    trans_curr = relationship('CurrencyCode', foreign_keys=[trans_code])
 
     def __repr__(self):
         return (f"<Rate({self.date} {self.provider.name}: "

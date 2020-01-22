@@ -33,21 +33,23 @@ class VisaSpider(scrapy.Spider):
                    'fromCurr': None, 'toCurr': None,
                    'submitButton': 'Calculate exchange rate'}
 
-    def __init__(self, data=None, inpath=None, *args, **kwargs):
+    def __init__(self, in_path=None, *args, **kwargs):
         super(VisaSpider, self).__init__(*args, **kwargs)
-        self.data = csv.reader(Path(inpath).open())
+        self.in_path = Path(in_path)
 
     def start_requests(self):
-        for card_c, trans_c, date in self.data:
-            item = UpdaterItem(card_c, trans_c, date)
+        with self.in_path.open() as data:
+            for card_c, trans_c, date in csv.reader(data):
+                item = UpdaterItem(card_c, trans_c, date)
 
-            params = dict(self.rate_params)
-            params['date'] = self.fmt_date(date)
-            params['fromCurr'] = card_c
-            params['toCurr'] = trans_c
-            url = f'{self.url}?{urllib.parse.urlencode(params)}'
+                params = dict(self.rate_params)
+                params['date'] = self.fmt_date(date)
+                params['fromCurr'] = card_c
+                params['toCurr'] = trans_c
+                # noinspection PyUnresolvedReferences
+                url = f'{self.url}?{urllib.parse.urlencode(params)}'
 
-            yield scrapy.Request(url=url, meta=dict(item=item))
+                yield scrapy.Request(url=url, meta=dict(item=item))
 
     def parse(self, response):
         item = response.meta['item']
@@ -64,11 +66,11 @@ class VisaSpider(scrapy.Spider):
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
 
+        return item
+
     @classmethod
     def fetch_avail_currs(cls):
-        page = requests.get(cls.url)
         r = requests.get(cls.url)
-        tree = html.fromstring(page.content)
         assert r.ok, "Request failed - ip may be blocked"
         tree = html.fromstring(r.content)
 

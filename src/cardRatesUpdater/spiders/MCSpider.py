@@ -25,44 +25,57 @@ class MCSpider(scrapy.Spider):
     support_url = url + 'en-gb/consumers/get-support/convert-currency.html'
     rate_url = url + 'settlement/currencyrate/{}/conversion-rate'
     date_fmt = '%Y-%m-%d'
-
+    # todo should 114 add null to database?
     # err_msgs to be identified.
-    err_msgs = {'104': None, '101': None, '500': None, '401': None,
-                '400': None, None: "conversion rate too small"}
+    # err_msgs = {'101': None,
+    #             '104':" Conversion rates are not available or issued for the selected date."
+    #             '114': "Not Found , Conversion rate is not available for this currency pair."
+    #             '124': "Conversion rate value is less than 0.000001"
+    #             '400': ("Request with an invalid client Id",
+    #                     "Incorrect request parameters",
+    #                     "User does not have access to retrieve conversion rates for the requested date",
+    #                     )
+    #
+    #             '401': ("User requests to retrieve conversion rate for a future date."
+    #                     "The API only retrieves conversion rates for the current date"
+    #                     )
+    #             '500': None,
+    #             }
 
     rate_params = {'fxDate': None, 'transCurr': None, 'crdhldBillCurr': None,
                    'bankFee': '0.0', 'transAmt': '1'}
 
-    def __init__(self, data=None, in_path=None, *args, **kwargs):
+    def __init__(self, in_path=None, *args, **kwargs):
         super(MCSpider, self).__init__(*args, **kwargs)
-        self.data = csv.reader(Path(in_path).open())
+        self.in_path = Path(in_path)
 
     # a generator function for initial requests
     # (formatted urls from currency alphaCds and dates)
     def start_requests(self):
-        for card_c, trans_c, date in self.data:
-            item = UpdaterItem(card_c, trans_c, date)
+        with self.in_path.open() as data:
+            for card_c, trans_c, date in csv.reader(data):
+                item = UpdaterItem(card_c, trans_c, date)
 
-            params = dict(self.rate_params)
-            params['crdhldBillCurr'] = card_c
-            params['transCurr'] = trans_c
-            params['fxDate'] = self.fmt_date(date)
+                params = dict(self.rate_params)
+                params['crdhldBillCurr'] = card_c
+                params['transCurr'] = trans_c
+                params['fxDate'] = self.fmt_date(date)
 
-            param_string = ''.join(f'{k}={v};' for k, v in params.items())[:-1]
+                param_string = ''.join(f'{k}={v};' for k, v in params.items())[:-1]
 
-            yield (scrapy.Request(
-                url=self.rate_url.format(param_string),
-                headers={'referer': self.support_url},
-                meta=dict(item=item)))
+                yield scrapy.Request(
+                    url=self.rate_url.format(param_string),
+                    headers={'referer': self.support_url},
+                    meta=dict(item=item))
 
     def parse(self, response):
         item = response.meta['item']
 
         j_response = json.loads(response.body_as_unicode())
         if 'errorCode' in j_response['data']:
-            err_cd = j_response['data']['errorCode']
-            print(f'Dropping Item: {item}, Error msg: {self.err_msgs[err_cd]}')
-
+            # err_cd = j_response['data']['errorCode']
+            print(f"Dropping Item: {item}, Error msg: \"{j_response['data'].get('errorMessage')}\"")
+            return
         else:
             item['rate'] = j_response['data']['conversionRate']
 
@@ -70,6 +83,7 @@ class MCSpider(scrapy.Spider):
         unwanted_keys = set(item.keys()) - set(wanted.keys())
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
+        return item
 
     @classmethod
     def fetch_avail_currs(cls):

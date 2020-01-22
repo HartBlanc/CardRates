@@ -4,8 +4,6 @@ from os import environ
 from scrapy import spiderloader
 from scrapy.utils.project import get_project_settings as settings
 
-from db_orm import CurrencyCode, Rate, Provider, Base
-
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import MetaData
@@ -22,6 +20,11 @@ import datetime
 from pathlib import Path
 import csv
 
+
+from .orm import CurrencyCode, Rate, Provider, Base
+
+
+environ['SCRAPY_SETTINGS_MODULE'] = "cardRatesUpdater.settings"
 std_date_fmt = settings().get('STD_DATE_FMT')
 
 
@@ -35,13 +38,14 @@ class DbClient:
                  echo=False):
 
         self.engine = create_engine(db_url, echo=echo)
-        self.Session = sessionmaker(bind=self.engine)
+        self.session_maker = sessionmaker(bind=self.engine)
         self.metadata = MetaData(bind=self.engine)
 
         spider_loader = spiderloader.SpiderLoader.from_settings(settings())
         s_names = spider_loader.list()
         self.spiders = tuple(spider_loader.load(name) for name in s_names)
 
+        # todo consider wrapping sqlalchemy.exc.OperationalError instead of using new parameter
         if new:
             create_database(self.engine.url)
             self.create_tables(Base)
@@ -64,7 +68,7 @@ class DbClient:
     def session_scope(self, commit=True):
         """Provide a transactional scope around a series of operations."""
 
-        session = self.Session()
+        session = self.session_maker()
         try:
             yield session
             if commit:
@@ -84,29 +88,37 @@ class DbClient:
                 s.add(Provider(id=pid + 1, name=p_name))
                 self.update_currencies(p_name)
 
-    def missing(self, provider):
+    # todo differentiate between card currencies and transaction currencies
+    def missing(self, provider, end=None, num_days=363, currs=None):
         with self.session_scope(commit=False) as s:
+
+            if not end:
+                end = self.current_date()
+
+            start = end - datetime.timedelta(days=num_days - 1)
 
             spider = next(spider for spider in self.spiders
                           if spider.provider == provider)
 
-            avail_currs = set(spider.fetch_avail_currs().keys())
-
-            end = self.current_date()
-
-            # paramaterise start/end
-            start = end - datetime.timedelta(days=363)
+            if not currs:
+                currs = set(spider.fetch_avail_currs().keys())
 
             avail_dates = (end - datetime.timedelta(days=x)
-                           for x in range(363))
+                           for x in range(num_days))
 
             all_combos = ((x, y, z) for x, y, z
-                          in product(avail_currs, avail_currs, avail_dates)
+                          in product(currs, currs, avail_dates)
                           if x != y)
 
+            # noinspection PyUnresolvedReferences
             not_missing = set(s.query(Rate.card_code, Rate.trans_code,
                                       Rate.date)
-                               .filter(Rate.provider.has(name=provider)))
+                               .filter(Rate.provider.has(name=provider))
+                               .filter(Rate.date <= end)
+                               .filter(Rate.date >= start)
+                               .filter(Rate.card_code.in_(currs))
+                               .filter(Rate.trans_code.in_(currs))
+                              )
 
         return (x for x in all_combos if x not in not_missing)
 
@@ -116,14 +128,17 @@ class DbClient:
 
         out_path = Path(out_path)
 
-        # todo try/except if file exists
-        out_path.mkdir()
+        try:
+            out_path.mkdir()
+        except FileExistsError:
+            pass
 
         paths = tuple(out_path / f'{i}.csv' for i in range(file_count))
 
         for p in paths:
             p.touch()
 
+        fs = []
         try:
             fs = tuple(p.open(mode='w') for p in paths)
             for i, (card_c, trans_c, date) in enumerate(results):
@@ -138,8 +153,7 @@ class DbClient:
 
         with self.session_scope() as s:
 
-            provider_id = (s.query(Provider.id)
-                            .filter(Provider.name == provider)
+            provider_id = (s.query(Provider.id).filter_by(name=provider)
                             .first()[0])
 
             for file in Path(in_path).glob('*.csv'):
@@ -171,9 +185,3 @@ class DbClient:
 
     def drop_database(self):
         drop_database(self.engine.url)
-
-
-if __name__ == '__main__':
-    dbc = DbClient()
-    dbc.create_tables()
-    dbc.combos_to_csv(1, dbc.missing('Visa'), 'input')
