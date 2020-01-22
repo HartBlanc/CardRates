@@ -1,6 +1,7 @@
 from sys import argv
 from db.client import DbClient
 
+
 if __name__ == "__main__":
 
     if len(argv) > 1 and argv[1].lower().strip() == "--new":
