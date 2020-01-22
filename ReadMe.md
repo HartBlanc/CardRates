@@ -11,7 +11,7 @@ CardRates is a tool for extracting daily fiat currency exchange rates from publi
 Exchange rates are publicly available on providers websites and can be retrieved easily for a single currency pair on a single date (e.g. GBP/USD for 1st of Jan 2019). This is useful for determining the rate you were charged for a transaction. However, it is not easy to retrieve data across dates and across many currency pairs. This kind of information is necessary for consumers to make informed choices about which payment scheme to choose to get the best rates for their specific requirements.
 
 ## Build Status
-Tests are currently in development, spiders are functioning as expected in the development environment.
+Tests are currently in development, initial tests for the database client are passing.
 
 ## Built with
 - [Scrapy](https://github.com/scrapy/scrapy)
