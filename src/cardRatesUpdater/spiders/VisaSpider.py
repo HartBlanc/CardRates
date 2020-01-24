@@ -52,13 +52,11 @@ class VisaSpider(scrapy.Spider):
 
     def parse(self, response):
         item = response.meta['item']
-        try:
-            item['rate'] = response.xpath(self.rate_xpath)\
-                                   .get()\
-                                   .split()[0]\
-                                   .replace(',', '')
-        except AttributeError:
-            item['rate'] = None
+
+        item['rate'] = response.xpath(self.rate_xpath)\
+                               .get()\
+                               .split()[0]\
+                               .replace(',', '')
 
         wanted = {'card_c': None, 'trans_c': None, 'date': None, 'rate': None}
         unwanted_keys = set(item.keys()) - set(wanted.keys())
