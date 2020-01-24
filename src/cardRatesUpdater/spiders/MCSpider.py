@@ -11,7 +11,7 @@ import csv
 import requests
 import json
 
-std_date_fmt = settings().get('STD_DATE_FMT')
+from db.client import std_date_fmt
 
 
 class MCSpider(scrapy.Spider):
@@ -57,9 +57,9 @@ class MCSpider(scrapy.Spider):
                 item = UpdaterItem(card_c, trans_c, date)
 
                 params = dict(self.rate_params)
+                params['fxDate'] = self.fmt_date(date)
                 params['crdhldBillCurr'] = card_c
                 params['transCurr'] = trans_c
-                params['fxDate'] = self.fmt_date(date)
 
                 param_string = ''.join(f'{k}={v};' for k, v in params.items())[:-1]
 
@@ -69,6 +69,7 @@ class MCSpider(scrapy.Spider):
                     meta=dict(item=item))
 
     def parse(self, response):
+
         item = response.meta['item']
 
         j_response = json.loads(response.body_as_unicode())
@@ -83,6 +84,7 @@ class MCSpider(scrapy.Spider):
         unwanted_keys = set(item.keys()) - set(wanted.keys())
         for unwanted_key in unwanted_keys:
             item.pop(unwanted_key, None)
+
         return item
 
     @classmethod
@@ -100,5 +102,5 @@ class MCSpider(scrapy.Spider):
 
     @classmethod
     def fmt_date(cls, std_date):
-        return (datetime.strptime(std_date, std_date_fmt)
-                .strftime(cls.date_fmt))
+        return datetime.strptime(std_date, std_date_fmt)\
+                       .strftime(cls.date_fmt)

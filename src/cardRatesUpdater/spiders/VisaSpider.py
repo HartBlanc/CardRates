@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from scrapy.utils.project import get_project_settings as settings
 from ..items import UpdaterItem
 import scrapy
 
@@ -12,7 +11,7 @@ from lxml import html
 import requests
 import urllib
 
-std_date_fmt = settings().get('STD_DATE_FMT')
+from db.client import std_date_fmt
 
 
 class VisaSpider(scrapy.Spider):
@@ -43,7 +42,7 @@ class VisaSpider(scrapy.Spider):
                 item = UpdaterItem(card_c, trans_c, date)
 
                 params = dict(self.rate_params)
-                params['date'] = self.fmt_date(date)
+                params['exchangedate'] = self.fmt_date(date)
                 params['fromCurr'] = card_c
                 params['toCurr'] = trans_c
                 # noinspection PyUnresolvedReferences
@@ -54,10 +53,10 @@ class VisaSpider(scrapy.Spider):
     def parse(self, response):
         item = response.meta['item']
         try:
-            item['rate'] = (response.xpath(self.rate_xpath)
-                                    .get()
-                                    .split()[0]
-                                    .replace(',', ''))
+            item['rate'] = response.xpath(self.rate_xpath)\
+                                   .get()\
+                                   .split()[0]\
+                                   .replace(',', '')
         except AttributeError:
             item['rate'] = None
 

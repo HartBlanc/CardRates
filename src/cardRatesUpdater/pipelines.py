@@ -16,9 +16,9 @@ class CardRatesUpdaterPipeline(object):
 
     def open_spider(self, spider):
         provider = spider.provider
-        self.provider_id = (self.session
-                                .query(Provider.id)
-                                .filter(Provider.name == provider))
+        self.provider_id = self.session\
+                               .query(Provider.id)\
+                               .filter(Provider.name == provider)
 
     # methods to ensure database saves when spider closes
     @classmethod
