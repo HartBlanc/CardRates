@@ -30,23 +30,18 @@ class CurrencyCode(Base):
 
 class Rate(Base):
     __tablename__ = 'rates'
-    __table_args__ = (UniqueConstraint('card_code', 'trans_code',
-                                       'date', 'provider_id'),)
-
-    # No need for rate id, PK should be codes, provider_id, date
-    # (as in unique constraint above).
-    id = Column(Integer, primary_key=True)
 
     card_code = Column(String(3), ForeignKey('currency_codes.alpha_code'),
-                       nullable=False)
+                       primary_key=True)
 
     trans_code = Column(String(3), ForeignKey('currency_codes.alpha_code'),
-                        nullable=False)
+                        primary_key=True)
 
     provider_id = Column(SmallInteger, ForeignKey('providers.id'),
-                         nullable=False)
+                         primary_key=True)
 
-    date = Column(Date, nullable=False)
+    date = Column(Date, primary_key=True)
+
     rate = Column(Float)
 
     provider = relationship('Provider')

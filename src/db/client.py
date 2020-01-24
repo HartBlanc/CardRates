@@ -123,6 +123,7 @@ class DbClient:
         return (x for x in all_combos if x not in not_missing)
 
     # todo multiprocessing to be implemented
+    # todo use generators to optimise memory usage
     @staticmethod
     def combos_to_csv(file_count, results, out_path):
 
