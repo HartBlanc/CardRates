@@ -15,8 +15,11 @@ scrapy = "*"
 scrapyd = "*"
 scrapyd-client = "*"
 sqlalchemy = "*"
-mysqlclient = "*"
 sqlalchemy-utils = "*"
+mysqlclient = {path = "./mysqlclient-1.4.6-cp37-cp37m-win32.whl"}
+flask = "*"
+flask-sqlalchemy = "*"
+flask-wtf = "*"
 
 [requires]
 python_version = "3.7"
