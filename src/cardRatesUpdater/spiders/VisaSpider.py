@@ -50,6 +50,9 @@ class VisaSpider(scrapy.Spider):
 
                 yield scrapy.Request(url=url, meta=dict(item=item))
 
+    # todo: attribute error from .split on None arrises from internal server error
+    # for example:
+    # https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html?amount=1&fee=0.0&exchangedate=10%2F08%2F2019&fromCurr=BMD&toCurr=VEF&submitButton=Calculate+exchange+rate
     def parse(self, response):
         item = response.meta['item']
 

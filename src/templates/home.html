@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+        <title>CardRates | World View</title>
+    </head>
+    <body>
+        <div class="layout-wrapper">
+            <h1> World View </h1>
+            <p>
+            Click a country to select your card currency. The fill-colour of other countries will indicate the payment scheme
+            with the lower average rate last week. Red indicates that Mastercard has the cheaper rate whereas blue
+            indicates that Visa has the cheaper rate. The opacity of the fill-colour is based on the percentile-rank of the relative rate.
+            The labels on the scale indicate in basis points (1% of 1%) how much cheaper the preffered scheme is than the competitor.</p>
+            <div id="map"></div>
+
+        </div>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://unpkg.com/topojson@3"></script>
+        <script src="https://d3js.org/d3-queue.v3.min.js"></script>
+        <script src="https://d3js.org/d3-array.v1.min.js"></script>
+        <script src="https://d3js.org/d3-geo.v1.min.js"></script>
+        <script src="/static/js/visualisation.js"></script>
+    </body>
+</html>

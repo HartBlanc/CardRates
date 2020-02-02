@@ -17,6 +17,7 @@ scrapyd-client = "*"
 sqlalchemy = "*"
 mysqlclient = "*"
 sqlalchemy-utils = "*"
+flask = "*"
 
 [requires]
 python_version = "3.7"

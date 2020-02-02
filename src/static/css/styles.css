@@ -1,0 +1,149 @@
+* {
+    font-family: "Helvetica Neue";
+}
+
+
+
+.layout-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+#map {
+    display: inline-block;
+    width: 100%;
+}
+
+.svg-content-responsive {
+    display: inline-block;
+}
+
+svg{
+    background: #efefef;
+}
+
+.country {
+    fill: darkgrey;
+    stroke: #333333;
+    stroke-width: 0.5;
+    stroke-opacity: 0.5;
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.country.same_curr{
+    stroke: gold;
+    stroke-opacity: 1;
+    stroke-width: 1;
+    opacity: 1;
+    paint-order: stroke;
+}
+
+.country.selected{
+    fill: black;
+    stroke: gold;
+    opacity: 1;
+}
+
+.rated{
+    fill: var(--fill);
+    fill-opacity: var(--opacity);
+    stroke: black;
+    stroke-width: 0.5;
+    stroke-opacity: 0.5;
+}
+
+.stop-red{
+    stop-color: #ff0000;  /* Red */
+    stop-opacity: 1;
+}
+
+.stop-blue{
+    stop-color: #0000ff;  /* Blue */
+    stop-opacity: 1;
+}
+
+.stop-clear{
+    stop-opacity: 0;
+}
+
+.blue-clear-red-fade{
+    fill: url(#mainGradient);
+    height: 10px;
+    width: 200px;
+}
+
+.graticule {
+    fill: none;
+    stroke: #000;
+    stroke-opacity: .3;
+    stroke-width: .5px;
+}
+
+.graticule.outline {
+    stroke: #333;
+    stroke-opacity: 1;
+    stroke-width: 1.5px;
+    /*fill: cornflowerblue;*/
+    opacity: .3;
+}
+
+.status-bar {
+    display: flex;
+    flex-direction: row;
+}
+
+.wrapper-dropdown {
+    /* Size and position */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 15px;
+    /*position: relative; !* Enable absolute positioning for children and pseudo elements *!*/
+    /*width: 200px;*/
+    /*margin: 0 auto;*/
+    /*margin-left: 0;*/
+    /*padding: 10px 15px;*/
+
+    /* Styles */
+    background: #fff;
+    border-left: 5px solid grey;
+    cursor: pointer;
+    outline: none;
+}
+
+.wrapper-dropdown:after {
+    content: "";
+    width: 0;
+    height: 0;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    margin-top: -3px;
+    border-width: 6px 6px 0 6px;
+    border-style: solid;
+    border-color: grey transparent;
+}
+
+.wrapper-dropdown .dropdown {
+  /* Size & position */
+    display: inline;
+    padding: 0;
+    /* Styles */
+    background: white;
+    transition: all 0.3s ease-out;
+    list-style: none;
+
+    /* Hiding */
+    visibility: collapse;
+}
+
+/* I want the dropdown class to have the same width as it's*/
+
+.wrapper-dropdown.active:after {
+    border-width: 0 6px 6px 6px;
+}
+
+.wrapper-dropdown.active .dropdown {
+    visibility: visible;
+}
