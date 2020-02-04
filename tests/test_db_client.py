@@ -44,14 +44,11 @@ def client():
     dbc = DbClient(db_url=db_url, new=True)
     # cannot have a session in the setup.
 
-    try:
-        # run tests
-        yield dbc
+    # run tests
+    return dbc
 
     # tear down
-    finally:
-        dbc.drop_database()
-        del dbc
+    # dbc.drop_database()
 
 
 def test_strpdate():
@@ -71,9 +68,9 @@ def test_create_tables(client):
     assert len(client.spiders) != 0
 
     from db.orm import Provider, CurrencyCode
-    with client.session_scope(commit=False) as s:
+    with client.session_scope() as s:
         assert set(s.query(Provider.name)) == {(spider.provider,) for spider in client.spiders}
-        s.close()
+        # s.close()
 
     avail_currencies = set()
     for spider in client.spiders:
@@ -93,8 +90,8 @@ def test_missing(client):
                        date=d,
                        provider_id=provider_id,
                        rate=rate))
-        s.commit()
-        s.close()
+        # s.commit()
+        # s.close()
 
     missing = set(client.missing("Mastercard", end=TEST_DATE, num_days=8, currs={"GBP", "USD"}))
 

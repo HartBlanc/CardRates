@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import MetaData
 from sqlalchemy import create_engine
+from sqlalchemy.sql import func
 
 from sqlalchemy_utils.functions import create_database, drop_database
 
@@ -186,3 +187,54 @@ class DbClient:
 
     def drop_database(self):
         drop_database(self.engine.url)
+
+    # todo write test
+    def average_rate_by_currency(self, card_currency, start_date=None, end_date=None):
+        # SELECT m.trans_code, m.average, v.average, (m.average - v.average)  FROM
+        # (
+        #     SELECT trans_code, AVG(rate) AS average
+        #     FROM rates
+        #     WHERE card_code = "AFN"
+        #     AND (provider_id = 1)
+        #     AND (date BETWEEN '2019-09-01' AND '2019-09-10')
+        #     GROUP BY trans_code
+        # ) AS m
+        # JOIN
+        # (
+        #     SELECT trans_code, AVG(rate) AS average
+        #     FROM rates
+        #     WHERE card_code = "AFN"
+        #     AND (provider_id = 2)
+        #     AND (date BETWEEN '2019-09-01' AND '2019-09-10')
+        #     GROUP BY trans_code
+        # ) AS v
+        # ON m.trans_code = v.trans_code;
+
+        if end_date is None:
+            end_date = self.current_date() - datetime.timedelta(days=7)
+        if start_date is None:
+            start_date = end_date - datetime.timedelta(days=7)
+
+        with self.session_scope(commit=False) as s:
+
+            v_query = s.query(Rate.trans_code, func.avg(Rate.rate).label('Visa'))\
+                       .filter(Rate.card_code == card_currency)\
+                       .filter(Rate.provider.has(name="Visa"))\
+                       .filter(Rate.date.between(start_date, end_date))\
+                       .group_by(Rate.trans_code)\
+                       .subquery()
+
+            m_query = s.query(Rate.trans_code, func.avg(Rate.rate).label('Mastercard'))\
+                       .filter(Rate.card_code == card_currency)\
+                       .filter(Rate.provider.has(name="Mastercard"))\
+                       .filter(Rate.date.between(start_date, end_date))\
+                       .group_by(Rate.trans_code)\
+                       .subquery()
+
+            q = s.query(m_query.c.trans_code, m_query.c.Mastercard, v_query.c.Visa)\
+                 .select_from(m_query)\
+                 .join(v_query, v_query.c.trans_code == m_query.c.trans_code)
+
+            return {r[0]: (r[1], r[2]) for r in q.all()}
+            # for k, v in result.items():
+            #     print(f"{k}: Mastercard: {v[0]}, Visa: {v[1]}, MV: {v[2]}")
