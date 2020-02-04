@@ -1,28 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-    <title>Document</title>
-</head>
-<body>
 
-    <form action="#" method="post">
-        {{ form.dt(class='datepicker') }}
-        {{ form.hidden_tag() }}
-        <input type="submit"/>
-    </form>
-    
-   
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        var elems = document.querySelectorAll('.datepicker');
-        var instances = M.Datepicker.init(elems, {});
-        });
-    </script>
-</body>
-</html>
+
+{% block title %}This is an example page{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="form-group">
+            <form action="#" method="post" id='date_form'>
+                <label for="date_form">Select date</label>
+                {{ date_form.dt }}
+                {{ date_form.csrf_token(form='date_form') }}
+                <br>
+                {{ date_form.card_code.label }}
+                {{ date_form.card_code(class_="form-control") }}
+                <br>
+                {{ date_form.trans_code.label}}
+                {{ date_form.trans_code(class_="form-control") }}
+                <br>
+                {{ date_form.submit_date(class_="btn btn-secondary") }}
+            </form>
+        </div>
+
+        <br><br>
+        <div class="form-group">
+            <form action="#" method="post" id='compare_form'>
+                {{ compare_form.dt_from }}
+                {{ compare_form.csrf_token(form='compare_form') }}
+                <br>
+                {{ compare_form.dt_to }}
+                <br>
+                {{ compare_form.card_code.label }}
+                {{ compare_form.card_code(class_="form-control") }}
+                <br>
+                {{ compare_form.trans_code.label }}
+                {{ compare_form.trans_code(class_="form-control") }}
+                <br>
+                {{ compare_form.submit_compare(class_="btn btn-primary") }}
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+

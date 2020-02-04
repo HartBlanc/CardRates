@@ -7,3 +7,5 @@ src/logs
 src/output
 src/project.egg-info
 src/twistd.pid
+*.whl
+src/app/ngrok.exe
